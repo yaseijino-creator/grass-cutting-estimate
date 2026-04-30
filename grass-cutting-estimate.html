@@ -450,9 +450,9 @@
     <div class="note">地形ごとに面積を入力。補正は面積で加重平均されます。</div>
     <div class="note" style="background:#fff8e1;border-left:3px solid #f5b400;padding:8px 10px;margin-top:8px;font-size:12px;line-height:1.6;">
       <b>地形倍率の目安</b><br>
-      ・平地 ×0.9 / 畔・法面 ×1.0 / 傾斜 ×1.5<br>
+      ・平地 ×0.9 / 畔・法面 ×1.0（方面草刈機が入る場所）/ 傾斜 ×1.5<br>
       ・<b>急傾斜地 ×2.0</b> （急峻な斜面・足場が悪い）<br>
-      ・<b>障害物多い ×1.5</b> （建物付近・石のある場所など、避けながら作業する場所）
+      ・<b>障害物多い ×1.5</b> （石等がある場所・家等のものがある場所付近）
     </div>
   </div>
 
@@ -490,7 +490,6 @@
   <div class="card">
     <h2>🌱 草の状態</h2>
     <div class="chips" id="grassChips">
-      <div class="chip" data-v="軽度" data-mult="0.9">軽度<small>×0.9</small></div>
       <div class="chip active" data-v="中度" data-mult="1.0">中度<small>×1.0</small></div>
       <div class="chip" data-v="重度" data-mult="1.3">重度<small>×1.3</small></div>
     </div>
@@ -691,10 +690,10 @@
 <!-- ============================ 👥 案件への人員割当 MODAL ============================ -->
 <div class="modal-bg" id="assignModal">
   <div class="modal" style="max-width:560px;">
-    <h3>👥 担当者・機械・時間を割当</h3>
+    <h3>👥 担当者・機械・面積を割当</h3>
     <input type="hidden" id="assignEstId">
     <div id="assignInfo" style="background:#f7faf7;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;"></div>
-    <p style="font-size:12px;color:#555;margin-bottom:6px;">機械ごとの必要時間（見積から）を、担当者に振り分けます。<br>同じ機械を複数人で分担OK。委託金は自動計算（時間 × 時給）。</p>
+    <p style="font-size:12px;color:#555;margin-bottom:6px;">担当者ごとに「機械」と「担当面積」を割当てます。<br>時間と委託金は自動計算されます（時間 = 面積 × 補正 ÷ 機械効率、金額 = 時間 × 時給）。</p>
     <div id="assignRows" style="margin-bottom:8px;"></div>
     <button class="action-btn secondary" style="padding:8px;font-size:13px;margin-top:0;" onclick="addAssignRow()">＋ 担当を追加</button>
     <div id="assignSummary" style="background:#fffbe6;border-left:4px solid #f0c040;padding:10px 12px;border-radius:6px;margin-top:10px;font-size:13px;line-height:1.8;"></div>
@@ -793,10 +792,10 @@ const TERRAIN_OPTIONS = [
 // 障害物多い = 建物付近・石のある場所など (作業時に障害物を避けながら進める必要がある場所)
 const TERRAIN_DESC = {
   '平地': '一般的な平らな場所',
-  '畔・法面': '田畑の畦道・法面',
+  '畔・法面': '田畑の畦道・法面（方面草刈機が入る場所）',
   '傾斜': 'なだらかな傾斜地',
   '急傾斜地': '急峻な斜面 (×2)',
-  '障害物多い': '建物付近・石のある場所など (×1.5)'
+  '障害物多い': '石等がある場所・家等のものがある場所付近 (×1.5)'
 };
 
 const MACHINE_DEFS = [
@@ -935,6 +934,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // ============================================================
 // 入力イベント
 // ============================================================
+document.getElementById('workers').addEventListener('input', calc);
 
 // 時間を直接入力したとき: 対応する面積フィールドを連動
 document.querySelectorAll('.mhour').forEach(i => {
@@ -1051,6 +1051,7 @@ function autoFillHoursFromArea() {
 // ============================================================
 function calc() {
   const S = getSettings();
+  const workers = parseInt(document.getElementById('workers').value) || 1;
 
   // 機械時間
   const machines = MACHINE_DEFS.map(def => {
@@ -1283,7 +1284,7 @@ function calc() {
   document.getElementById('breakdownArea').innerHTML = blocks.join('');
 
   return {
-    totalArea, totalHours, machines,
+    totalArea, totalHours, workers, machines,
     basePrice, areaBase, estBase, machineBase, compareDiff, compareDiffPct,
     avgTerrainMult, terrainDiff, grassDiff,
     discountAmount, distTotal, total, outsrcPay, myProfit, minPriceAdj
@@ -1338,6 +1339,11 @@ function openCustomerView() {
     `;
   }
 
+  // 移動時だけ作業人数
+  const workersRow = r.distTotal > 0
+    ? `<div class="quote-row"><span>作業人数</span><span>${r.workers} 人</span></div>`
+    : '';
+
   const html = `
     <div class="quote-doc">
       <h3>草刈り作業 お見積書</h3>
@@ -1345,6 +1351,7 @@ function openCustomerView() {
       <div class="quote-row"><span>現場</span><span>${escapeHtml(siteName)}</span></div>
       <div class="quote-row"><span>合計面積</span><span><b>${r.totalArea.toLocaleString()} ㎡</b></span></div>
       ${terrainList}
+      ${workersRow}
 
       <div class="quote-section-label">【作業費 内訳】</div>
       ${costRows.join('')}
@@ -1387,6 +1394,7 @@ function saveEstimate() {
     area: r.totalArea,
     areaRows: state.areaRows.map(x => ({terrain:x.terrain, mult:x.mult, area:x.area})),
     avgTerrainMult: r.avgTerrainMult,
+    workers: r.workers,
     hours: hoursObj,
     grass: state.grass, grassMult: state.grassMult,
     dist: state.dist, distAdd: state.distAdd,
@@ -1408,6 +1416,7 @@ function saveEstimate() {
 function clearForm() {
   if (!confirm('フォームをリセットしますか?')) return;
   document.getElementById('siteName').value = '';
+  document.getElementById('workers').value = '1';
   document.querySelectorAll('.mhour').forEach(i => i.value = '');
   document.querySelectorAll('.marea').forEach(i => i.value = '');
   state.areaRows = [];
@@ -1735,7 +1744,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-04-29 11:30';
+const BUILD_STAMP = '2026-04-29 23:20';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -1963,6 +1972,7 @@ window.saveEstimate = function() {
     area: r.totalArea,
     areaRows: state.areaRows.map(x => ({terrain:x.terrain, mult:x.mult, area:x.area})),
     avgTerrainMult: r.avgTerrainMult,
+    workers: r.workers,
     hours: hoursObj,
     machineAreas,
     grass: state.grass, grassMult: state.grassMult,
@@ -2035,17 +2045,33 @@ function closeAssignModal() {
   document.getElementById('assignModal').classList.remove('show');
 }
 
-function addAssignRow() {
+function addAssignRow(memberId = null) {
   const members = getMembers().filter(m => m.status === 'active');
   if (members.length === 0) {
     alert('先に「人員」タブでメンバーを追加してください');
     return;
   }
-  const firstMember = members[0];
+  // memberId指定→その人 / なければ最後の行と同じ人 / なければ最初の人
+  let selectedMember;
+  if (memberId) {
+    selectedMember = members.find(m => m.id === memberId) || members[0];
+  } else if (assignState.rows.length > 0) {
+    const lastId = assignState.rows[assignState.rows.length - 1].memberId;
+    selectedMember = members.find(m => m.id === lastId) || members[0];
+  } else {
+    selectedMember = members[0];
+  }
+  // この人がまだ使っていない機械を自動選択
+  const allMachines = ['karibaraiki', 'homen', 'hammer'];
+  const usedMachines = assignState.rows
+    .filter(r => r.memberId === selectedMember.id)
+    .map(r => r.machineKey);
+  const nextMachine = allMachines.find(m => !usedMachines.includes(m))
+    || allMachines[0];
   assignState.rows.push({
-    memberId: firstMember.id,
-    machineKey: firstMember.skills[0] || 'karibaraiki',
-    hours: 0
+    memberId: selectedMember.id,
+    machineKey: nextMachine,
+    area: 0
   });
   renderAssignRows();
 }
@@ -2055,107 +2081,40 @@ function removeAssignRow(idx) {
 }
 function updateAssignRow(idx, field, value) {
   if (!assignState.rows[idx]) return;
-  if (field === 'hours' || field === 'area') value = parseFloat(value) || 0;
+  if (field === 'area') value = parseFloat(value) || 0;
   assignState.rows[idx][field] = value;
   renderAssignRows();
-}
-
-// 旧データ互換: row.area しかない場合は hours に変換
-function migrateRowToHours(row, est) {
-  if (typeof row.hours === 'number' && row.hours > 0) return row.hours;
-  if (typeof row.area === 'number' && row.area > 0) {
-    const S = getSettings();
-    const MACHINE_DEF = {
-      karibaraiki: { effKey:'effKaribaraiki' },
-      homen:       { effKey:'effHomen' },
-      hammer:      { effKey:'effHammer' }
-    };
-    const def = MACHINE_DEF[row.machineKey];
-    if (!def) return 0;
-    const eff = S[def.effKey] || 100;
-    const mult = est?.avgTerrainMult || 1.0;
-    const grassMult = est?.grassMult || 1.0;
-    return (row.area * mult * grassMult) / eff;
-  }
-  return 0;
 }
 
 function calcAssignment(row, est) {
   const S = getSettings();
   const MACHINE_DEF = {
-    karibaraiki: { rateKey:'rateKaribaraiki' },
-    homen:       { rateKey:'rateHomen' },
-    hammer:      { rateKey:'rateHammer' }
+    karibaraiki: { effKey:'effKaribaraiki', rateKey:'rateKaribaraiki' },
+    homen:       { effKey:'effHomen',       rateKey:'rateHomen' },
+    hammer:      { effKey:'effHammer',      rateKey:'rateHammer' }
   };
   const def = MACHINE_DEF[row.machineKey];
   if (!def) return { hours:0, payment:0 };
+  const eff = S[def.effKey] || 100;
   const rate = S[def.rateKey] || 2000;
-  const hours = migrateRowToHours(row, est);
+  const mult = est?.avgTerrainMult || 1.0;
+  const grassMult = est?.grassMult || 1.0;
+  const correction = mult * grassMult;
+  const hours = (row.area * correction) / eff;
   const payment = hours * rate;
   return { hours, payment };
-}
-
-// 案件の機械別必要時間を取得 (見積データから)
-function getRequiredHours(est) {
-  if (!est) return { karibaraiki:0, homen:0, hammer:0 };
-  // hoursオブジェクトが直接ある場合
-  if (est.hours && typeof est.hours === 'object') {
-    return {
-      karibaraiki: est.hours.karibaraiki || 0,
-      homen:       est.hours.homen || 0,
-      hammer:      est.hours.hammer || 0
-    };
-  }
-  // machinesアレイから取得
-  if (est.machines && Array.isArray(est.machines)) {
-    const r = { karibaraiki:0, homen:0, hammer:0 };
-    est.machines.forEach(m => {
-      if (m.key in r) r[m.key] = m.hours || 0;
-    });
-    return r;
-  }
-  return { karibaraiki:0, homen:0, hammer:0 };
 }
 
 function renderAssignRows() {
   const c = document.getElementById('assignRows');
   const members = getMembers();
   const est = getEstimates().find(x => x.id === assignState.estId);
-  const required = getRequiredHours(est);
-
-  // 機械別の割当時間を集計
-  const assigned = { karibaraiki:0, homen:0, hammer:0 };
-  assignState.rows.forEach(r => {
-    const h = migrateRowToHours(r, est);
-    if (r.machineKey in assigned) assigned[r.machineKey] += h;
-  });
-
-  // 機械別の必要時間 vs 割当時間 表示
-  const machineSummary = ['karibaraiki','homen','hammer'].map(mk => {
-    const req = required[mk] || 0;
-    const got = assigned[mk] || 0;
-    const remain = req - got;
-    if (req === 0 && got === 0) return '';
-    const color = Math.abs(remain) < 0.01 ? '#1f7a3a' : remain > 0 ? '#a04040' : '#a04040';
-    const status = Math.abs(remain) < 0.01 ? '✓' : remain > 0 ? `残${remain.toFixed(2)}h` : `超${Math.abs(remain).toFixed(2)}h`;
-    return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0;">
-      <span>${MACHINE_LABELS[mk]} <span style="color:#666;">必要 ${req.toFixed(2)}h</span></span>
-      <span style="color:${color};font-weight:700;">割当 ${got.toFixed(2)}h ${status}</span>
-    </div>`;
-  }).filter(s => s).join('');
-
-  // 必要時間サマリーを上部に表示
-  const machineSummaryHtml = machineSummary
-    ? `<div style="background:#eef5ee;border-left:3px solid #5a7a3a;padding:8px 10px;border-radius:6px;margin-bottom:8px;">
-        <div style="font-size:12px;font-weight:700;color:#3d4d2a;margin-bottom:4px;">📋 機械別 必要時間 vs 割当</div>
-        ${machineSummary}
-      </div>`
-    : '';
+  const totalArea = est?.area || est?.totalArea || 0;
 
   if (assignState.rows.length === 0) {
-    c.innerHTML = machineSummaryHtml + '<p style="color:#999;text-align:center;padding:14px;font-size:13px;">担当を追加してください</p>';
+    c.innerHTML = '<p style="color:#999;text-align:center;padding:14px;font-size:13px;">担当を追加してください</p>';
   } else {
-    const rowsHtml = assignState.rows.map((row, i) => {
+    c.innerHTML = assignState.rows.map((row, i) => {
       const member = members.find(m => m.id === row.memberId);
       const memberOpts = members.map(m =>
         `<option value="${m.id}" ${m.id===row.memberId?'selected':''}>${escapeHtml(m.name)}${m.status==='inactive'?'(休止)':''}</option>`
@@ -2164,40 +2123,40 @@ function renderAssignRows() {
         const can = member?.skills?.includes(mk);
         return `<option value="${mk}" ${mk===row.machineKey?'selected':''}>${MACHINE_LABELS[mk]}${can?'':' ⚠'}</option>`;
       }).join('');
-      const hours = migrateRowToHours(row, est);
       const calc = calcAssignment(row, est);
       return `
         <div style="background:#fff;border:1px solid #d7e0d7;border-radius:8px;padding:10px;margin-bottom:6px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin-bottom:6px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:6px;margin-bottom:6px;">
             <select onchange="updateAssignRow(${i},'memberId',this.value)" style="margin-bottom:0;font-size:13px;padding:8px;">
               ${memberOpts}
             </select>
             <select onchange="updateAssignRow(${i},'machineKey',this.value)" style="margin-bottom:0;font-size:13px;padding:8px;">
               ${machineOpts}
             </select>
+            <button title="同じ担当者で別の機械を追加" style="width:auto;padding:6px 8px;font-size:16px;margin:0;background:#e8f5e9;border:1px solid #81c784;border-radius:6px;cursor:pointer;color:#2d5a3d;" onclick="addAssignRow('${row.memberId}')">＋</button>
             <button class="action-btn danger" style="width:auto;padding:6px 10px;font-size:12px;margin:0;" onclick="removeAssignRow(${i})">×</button>
           </div>
-          <div style="display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;">
-            <input type="number" step="0.25" placeholder="担当時間 (h)" value="${hours>0?hours.toFixed(2):''}" oninput="updateAssignRow(${i},'hours',this.value)" style="margin-bottom:0;font-size:13px;padding:8px;">
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;">
+            <input type="number" placeholder="担当面積㎡" value="${row.area||''}" oninput="updateAssignRow(${i},'area',this.value)" style="margin-bottom:0;font-size:13px;padding:8px;">
+            <span style="font-size:12px;color:#666;white-space:nowrap;">→ ${calc.hours.toFixed(2)}h</span>
             <span style="font-size:13px;color:#2d5a3d;font-weight:700;white-space:nowrap;">¥${Math.round(calc.payment).toLocaleString()}</span>
           </div>
         </div>
       `;
     }).join('');
-    c.innerHTML = machineSummaryHtml + rowsHtml;
   }
 
   // サマリー
+  const totalAssignArea = assignState.rows.reduce((s,r) => s + (r.area||0), 0);
   const totalPayment = assignState.rows.reduce((s,r) => s + calcAssignment(r, est).payment, 0);
   const totalHours = assignState.rows.reduce((s,r) => s + calcAssignment(r, est).hours, 0);
+  const remainArea = totalArea - totalAssignArea;
   const customerPrice = est?.customerPrice || 0;
   const profit = customerPrice - totalPayment;
-  const totalRequired = required.karibaraiki + required.homen + required.hammer;
-  const remainTotal = totalRequired - totalHours;
   document.getElementById('assignSummary').innerHTML = `
     <b>📊 サマリー</b><br>
-    ・割当時間: <b>${totalHours.toFixed(2)}h</b> / ${totalRequired.toFixed(2)}h ${Math.abs(remainTotal) < 0.01 ? '<span style="color:#1f7a3a;">✓</span>' : remainTotal > 0 ? `<span style="color:#a04040;">(残${remainTotal.toFixed(2)}h)</span>` : `<span style="color:#a04040;">(超過${Math.abs(remainTotal).toFixed(2)}h)</span>`}<br>
-    ・委託金 合計: <b>¥${Math.round(totalPayment).toLocaleString()}</b><br>
+    ・割当面積: <b>${totalAssignArea.toLocaleString()}㎡</b> / ${totalArea.toLocaleString()}㎡ ${remainArea > 0 ? `<span style="color:#a04040;">(残${remainArea}㎡)</span>` : remainArea < 0 ? `<span style="color:#a04040;">(超過${Math.abs(remainArea)}㎡)</span>` : '<span style="color:#1f7a3a;">✓</span>'}<br>
+    ・委託金 合計: <b>¥${Math.round(totalPayment).toLocaleString()}</b> (${totalHours.toFixed(2)}h)<br>
     ・顧客請求: ¥${customerPrice.toLocaleString()}<br>
     ・自分の粗利: <b style="color:${profit>=0?'#1f7a3a':'#a04040'};">¥${Math.round(profit).toLocaleString()}</b>
   `;
@@ -2223,7 +2182,7 @@ function saveAssignment() {
   // 計算値を保存
   arr[idx].assignments = assignState.rows.map(r => {
     const calc = calcAssignment(r, arr[idx]);
-    return { memberId: r.memberId, machineKey: r.machineKey, hours: calc.hours, payment: calc.payment };
+    return { memberId: r.memberId, machineKey: r.machineKey, area: r.area, hours: calc.hours, payment: calc.payment };
   });
   // 旧フォーマットも互換のため保存
   arr[idx].assignedMembers = [...new Set(assignState.rows.map(r => r.memberId))];
@@ -2239,15 +2198,19 @@ function autoAssignMembers() {
   const e = arr.find(x => x.id === assignState.estId);
   if (!e) return;
   const members = getMembers().filter(m => m.status === 'active');
-  const required = getRequiredHours(e);
+  // 機械ごとの担当面積を取得
   const newRows = [];
-  ['karibaraiki','homen','hammer'].forEach(mk => {
-    const reqH = required[mk] || 0;
-    if (reqH <= 0) return;
-    const skilled = members.filter(m => m.skills.includes(mk));
+  (e.machines||[]).filter(m => m.hours > 0).forEach(mc => {
+    const skilled = members.filter(m => m.skills.includes(mc.key));
     if (skilled.length === 0) return;
-    // 単純: 最初の対応者に全時間を割当
-    newRows.push({ memberId: skilled[0].id, machineKey: mk, hours: Math.round(reqH * 100) / 100 });
+    // 機械の担当面積（machineAreasから取得、なければ総面積を時間比で按分）
+    let area = e.machineAreas?.[mc.key];
+    if (!area) {
+      const totalH = e.hours?.total || 1;
+      area = (e.area || 0) * (mc.hours / totalH);
+    }
+    // 単純: 最初の対応者に全面積を割当
+    newRows.push({ memberId: skilled[0].id, machineKey: mc.key, area: Math.round(area) });
   });
   assignState.rows = newRows;
   renderAssignRows();
