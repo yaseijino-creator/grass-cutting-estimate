@@ -781,21 +781,21 @@ const DEFAULT_SETTINGS = {
   minPrice: 3000
 };
 
+// 地形別単価（円/㎡ 直接設定）
 const TERRAIN_OPTIONS = [
-  {name:'平地',       mult:1.0},
-  {name:'畔・法面',   mult:1.6364},
-  {name:'傾斜',       mult:2.2727},
-  {name:'急傾斜地',   mult:3.6364},
-  {name:'障害物多い', mult:2.7273}
+  {name:'平地',       price:11},
+  {name:'畔・法面',   price:18},
+  {name:'傾斜',       price:25},
+  {name:'急傾斜地',   price:40},
+  {name:'障害物多い', price:30}
 ];
 
-// 地形別単価: 平地11円/㎡基準
 const TERRAIN_DESC = {
-  '平地': '平らな場所 → 11円/㎡',
-  '畔・法面': '田畑の畦道・法面（方面草刈機が入る場所）→ 18円/㎡',
-  '傾斜': 'なだらかな傾斜地 → 25円/㎡',
-  '急傾斜地': '急峻な斜面・足場が悪い場所 → 40円/㎡',
-  '障害物多い': '石等がある場所・家等のものがある場所付近 → 30円/㎡'
+  '平地': '平らな場所',
+  '畔・法面': '田畑の畦道・法面（方面草刈機が入る場所）',
+  '傾斜': 'なだらかな傾斜地',
+  '急傾斜地': '急峻な斜面・足場が悪い場所',
+  '障害物多い': '石等がある場所・家等のものがある場所付近'
 };
 
 const MACHINE_DEFS = [
@@ -842,7 +842,9 @@ function addAreaRow(terrainName, area) {
   const t = TERRAIN_OPTIONS.find(o => o.name === terrainName) || TERRAIN_OPTIONS[0];
   state.areaRows.push({
     id: 'r' + Date.now() + Math.floor(Math.random()*1000),
-    terrain: t.name, mult: t.mult,
+    terrain: t.name, price: t.price,
+    // mult は機械時間計算用（price/11 = 平地基準の難易度係数）
+    mult: t.price / 11,
     area: area || 0
   });
   renderAreaRows();
@@ -862,7 +864,7 @@ function updateAreaRow(id, field, value) {
   if (!row) return;
   if (field === 'terrain') {
     const t = TERRAIN_OPTIONS.find(o => o.name === value);
-    if (t) { row.terrain = t.name; row.mult = t.mult; }
+    if (t) { row.terrain = t.name; row.price = t.price; row.mult = t.price / 11; }
   } else if (field === 'area') {
     row.area = parseFloat(value) || 0;
   }
@@ -872,7 +874,7 @@ function updateAreaRow(id, field, value) {
 function renderAreaRows() {
   const html = state.areaRows.map(r => {
     const opts = TERRAIN_OPTIONS.map(o =>
-      `<option value="${o.name}" ${r.terrain===o.name?'selected':''}>${o.name} (×${o.mult})</option>`
+      `<option value="${o.name}" ${r.terrain===o.name?'selected':''}>${o.name} (${o.price}円/㎡)</option>`
     ).join('');
     return `
       <div class="area-row" data-id="${r.id}">
@@ -888,10 +890,11 @@ function renderAreaRows() {
 }
 function updateAreaSummary() {
   const totalArea = state.areaRows.reduce((s,r) => s + (r.area||0), 0);
-  const weighted = state.areaRows.reduce((s,r) => s + (r.area||0) * r.mult, 0);
-  const avg = totalArea > 0 ? weighted / totalArea : 1.0;
+  // 加重平均単価 (円/㎡)
+  const weightedPrice = state.areaRows.reduce((s,r) => s + (r.area||0) * (r.price||11), 0);
+  const avgPrice = totalArea > 0 ? weightedPrice / totalArea : 11;
   document.getElementById('totalArea').textContent = totalArea.toLocaleString();
-  document.getElementById('avgMult').textContent = '×' + avg.toFixed(2);
+  document.getElementById('avgMult').textContent = avgPrice.toFixed(1) + '円/㎡';
   if (typeof updateMachineAllocSummary === 'function') updateMachineAllocSummary();
 }
 
@@ -1062,12 +1065,13 @@ function calc() {
   const totalHours = machines.reduce((s,m) => s + m.hours, 0);
   const basePrice = machines.reduce((s,m) => s + m.base, 0);
 
-  // 面積・地形
+  // 面積・地形（単価直接計算）
   const totalArea = state.areaRows.reduce((s,r) => s + (r.area||0), 0);
-  const weighted = state.areaRows.reduce((s,r) => s + (r.area||0) * r.mult, 0);
-  const avgTerrainMult = totalArea > 0 ? weighted / totalArea : 1.0;
+  // 各地形行の（面積 × 単価）の合計 = 地形ベースの作業費
+  const weightedPriceSum = state.areaRows.reduce((s,r) => s + (r.area||0) * (r.price || r.mult*11 || 11), 0);
+  const avgTerrainPrice = totalArea > 0 ? weightedPriceSum / totalArea : 11; // 平均単価 (円/㎡)
+  const avgTerrainMult = avgTerrainPrice / 11; // 機械時間計算用（難易度係数）
 
-  // 面積ベース見積に最低限必要なのは「合計面積」のみ
   if (totalArea === 0) {
     document.getElementById('totalDisp').textContent = '—';
     document.getElementById('perM2Disp').textContent = '— 円/㎡';
@@ -1077,13 +1081,15 @@ function calc() {
     return null;
   }
 
-  // === 面積ベース参考額 ===
-  const areaBase = totalArea * S.baseRateM2;
+  // === 面積ベース = 地形別単価 × 面積 の合計（草状態・契約割引を適用）===
+  const areaBase = weightedPriceSum;               // 地形単価 × 面積 の合計
   const estBase = areaBase;
-  const afterTerrain = estBase * avgTerrainMult;
+  const afterTerrain = estBase;                    // 単価に地形がすでに含まれているのでそのまま
   const afterGrass = afterTerrain * state.grassMult;
   const afterFreq = afterGrass * state.freqMult;
   const discountAmount = afterGrass - afterFreq;
+  const terrainDiff = 0; // 単価直接計算のため地形補正差額なし
+  const grassDiff = afterGrass - afterTerrain;
 
   // === 機械ベース = 委託先に払う金額 (時間 × 時給 の合計) ===
   const machineBase = basePrice;
@@ -1115,9 +1121,8 @@ function calc() {
     m.outsrc = m.base;
   });
 
-  // 差分 (面積ベース対して)
-  const terrainDiff = afterTerrain - estBase;
-  const grassDiff = afterGrass - afterTerrain;
+  // 差分（単価直接計算のため地形補正差額は0）
+  // terrainDiff, grassDiff は上部で定義済み
 
   // 面積ベース参照用 (表示のみ)
   const machineExpected = machineBasedTotal; // 新ロジックでは machineBasedTotal が請求額
@@ -1379,7 +1384,7 @@ function saveEstimate() {
     date: document.getElementById('estDate').value || new Date().toISOString().slice(0,10),
     site: name,
     area: r.totalArea,
-    areaRows: state.areaRows.map(x => ({terrain:x.terrain, mult:x.mult, area:x.area})),
+    areaRows: state.areaRows.map(x => ({terrain:x.terrain, price:x.price||x.mult*11||11, mult:x.price/11||x.mult||1, area:x.area})),
     avgTerrainMult: r.avgTerrainMult,
     workers: r.workers,
     hours: hoursObj,
@@ -1517,13 +1522,22 @@ function loadEstimateToForm(id) {
   const dateEl = document.getElementById('estDate');
   if (dateEl) dateEl.value = e.date || '';
 
-  // 機械時間を復元
+  // 機械時間を復元し、そこから面積も逆算して表示
   MACHINE_DEFS.forEach(def => {
     const h = e.hours?.[def.key] || 0;
     const hourEl = document.querySelector(`.mhour[data-m=${def.key}]`);
     const areaEl = document.querySelector(`.marea[data-m=${def.key}]`);
     if (hourEl) hourEl.value = h > 0 ? h : '';
-    if (areaEl) areaEl.value = '';
+    // 面積を逆算: hours × efficiency / avgTerrainMult
+    if (areaEl && h > 0) {
+      const S = getSettings();
+      const eff = S[def.effKey] || 100;
+      const avgMult = e.avgTerrainMult || 1.0;
+      const area = Math.round(h * eff / avgMult);
+      areaEl.value = area > 0 ? area : '';
+    } else if (areaEl) {
+      areaEl.value = '';
+    }
   });
 
   // 地形行を復元
@@ -1808,7 +1822,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-01 16:00';
+const BUILD_STAMP = '2026-05-02 11:00';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -2034,7 +2048,7 @@ window.saveEstimate = function() {
     site: name,
     siteAreaText, workDate,
     area: r.totalArea,
-    areaRows: state.areaRows.map(x => ({terrain:x.terrain, mult:x.mult, area:x.area})),
+    areaRows: state.areaRows.map(x => ({terrain:x.terrain, price:x.price||x.mult*11||11, mult:x.price/11||x.mult||1, area:x.area})),
     avgTerrainMult: r.avgTerrainMult,
     workers: r.workers,
     hours: hoursObj,
