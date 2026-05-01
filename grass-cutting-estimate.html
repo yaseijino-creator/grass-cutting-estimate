@@ -772,7 +772,7 @@ const DEFAULT_SETTINGS = {
   rateHomen: 4000,
   rateHammer: 5000,
   // 効率 (㎡/h) - 基準地形での目安
-  effKaribaraiki: 80,
+  effKaribaraiki: 150,
   effHomen: 250,
   effHammer: 500,
   // 面積ベース見積用: 基準単価 (円/㎡) ※平地11円/㎡
@@ -1077,38 +1077,36 @@ function calc() {
     return null;
   }
 
-  // === 面積ベース基準額 ===
+  // === 面積ベース参考額 ===
   const areaBase = totalArea * S.baseRateM2;
-
-  // 見積の正式値は「面積ベース」を採用 (ユーザー要望)
   const estBase = areaBase;
-  // 参考値として機械ベースも計算
-  const machineBase = basePrice;
-
-  // 補正計算 (面積ベースに対して)
   const afterTerrain = estBase * avgTerrainMult;
   const afterGrass = afterTerrain * state.grassMult;
   const afterFreq = afterGrass * state.freqMult;
   const discountAmount = afterGrass - afterFreq;
 
-  // 参考: 機械ベースにも同じ補正を掛けた場合の試算
-  const machineBaseWithCorrections = machineBase * avgTerrainMult * state.grassMult * state.freqMult;
+  // === 機械ベース = 委託先に払う金額 (時間 × 時給 の合計) ===
+  const machineBase = basePrice;
 
-  // 移動費は1案件につき固定 (人数による倍率なし)
+  // 顧客請求額 = 機械ベース ÷ 委託率
+  // 例: 機械計60,000円、委託率60% → 60,000÷0.6 = 100,000円を顧客に請求
+  const outsrcFraction = S.outsrcRate > 0 ? S.outsrcRate / 100 : 0.6;
+  const machineBasedTotal = machineBase > 0
+    ? Math.ceil(machineBase / outsrcFraction / 100) * 100  // 100円単位切り上げ
+    : Math.ceil(afterFreq / 100) * 100;                    // 機械未入力時は面積ベース
+
+  // 移動費は1案件につき固定
   const distTotal = state.distAdd;
-  let subtotal = afterFreq + distTotal;
-  let total = subtotal;
+  let total = machineBasedTotal + distTotal;
 
   // 最低料金保証
   let minPriceAdj = 0;
   if (total < S.minPrice) { minPriceAdj = S.minPrice - total; total = S.minPrice; }
 
-  // 100円単位切上
   const beforeRound = total;
-  total = Math.ceil(total / 100) * 100;
-  const roundAdj = total - beforeRound;
+  const roundAdj = 0; // 切上はmachineBasedTotal計算時に実施済
 
-  // 委託先支払 = 機械ベース(時間×時給の合計)をそのまま渡す
+  // 委託先支払 = 機械ベース (時間×時給 の合計がそのまま委託先へ)
   const outsrcPay = machineBase;
   const myProfit = total - outsrcPay;
 
@@ -1121,12 +1119,10 @@ function calc() {
   const terrainDiff = afterTerrain - estBase;
   const grassDiff = afterGrass - afterTerrain;
 
-  // 機械ベース(時間×時給)=委託先への実支払額 とみなし、
-  // それを委託率%で割った額(=顧客請求すべき金額)と面積ベースを照合する
-  // 例: 機械ベース¥10,000、委託率60% → ¥10,000 ÷ 0.6 = ¥16,667 が顧客請求すべき金額
-  const machineExpected = S.outsrcRate > 0 ? (machineBase / (S.outsrcRate / 100)) : 0;
-  const compareDiff = estBase - machineExpected;
-  const compareDiffPct = machineExpected > 0 ? (compareDiff / machineExpected * 100) : 0;
+  // 面積ベース参照用 (表示のみ)
+  const machineExpected = machineBasedTotal; // 新ロジックでは machineBasedTotal が請求額
+  const compareDiff = 0;
+  const compareDiffPct = 0;
 
   // ========= 表示 =========
   document.getElementById('totalDisp').textContent = '¥' + total.toLocaleString();
@@ -1149,65 +1145,56 @@ function calc() {
 
   const blocks = [];
 
-  // ===== 基準額: 2つの方法を並べる =====
-  blocks.push(`<div class="breakdown-section">📊 基準額 (面積ベース と 機械ベース の照合)</div>`);
+  // ===== 機械ベース = 委託先支払 → 顧客請求額 =====
+  blocks.push(`<div class="breakdown-section">🔧 機械ベース（委託先への支払）</div>`);
 
-  // 面積ベース (正式)
-  blocks.push(`
-    <div class="breakdown-row" style="background:#e6efe6;">
-      <div class="label"><b>面積ベース</b> 🎯</div>
-      <div class="detail">${totalArea.toLocaleString()}㎡ × ¥${S.baseRateM2}/㎡</div>
-      <div class="amount"><b>¥${areaBase.toLocaleString()}</b></div>
-    </div>
-  `);
-
-  // 機械ベース = 委託先へ払う金額
-  blocks.push(`<div class="breakdown-row"><div class="label" style="color:#666;">機械ベース(=委託支払)</div><div class="detail" style="color:#666;">時間×時給の合計</div><div class="amount" style="color:#666;">¥${machineBase.toLocaleString()}</div></div>`);
-  machines.forEach(m => {
+  if (machineBase === 0) {
+    blocks.push(`<div class="breakdown-row"><div class="label" style="color:#999;grid-column:1/4;text-align:center;">機械時間を入力すると請求額が自動計算されます</div></div>`);
+  } else {
+    machines.forEach(m => {
+      blocks.push(`
+        <div class="breakdown-row">
+          <div class="label">🛠 ${m.name}</div>
+          <div class="detail">${m.hours}h × ¥${m.rate.toLocaleString()}/h</div>
+          <div class="amount">¥${m.base.toLocaleString()}</div>
+        </div>
+      `);
+    });
     blocks.push(`
-      <div class="breakdown-row" style="padding-left:20px;color:#888;">
-        <div class="label">└ ${m.name}</div>
-        <div class="detail" style="font-size:11px;">${m.hours}h × ¥${m.rate.toLocaleString()}</div>
-        <div class="amount">¥${m.base.toLocaleString()}</div>
+      <div class="breakdown-row" style="background:#fff8e1;border-left:3px solid #f0c040;">
+        <div class="label"><b>委託先 合計</b></div>
+        <div class="detail">↑ の合計 (委託先に渡す金額)</div>
+        <div class="amount"><b>¥${machineBase.toLocaleString()}</b></div>
       </div>
     `);
-  });
-
-  // 機械ベース ÷ 委託率 の計算値(=顧客請求すべき額) - 目立つ表示
-  blocks.push(`
-    <div class="breakdown-row billable-highlight">
-      <div class="label"><b>💴 顧客請求すべき額</b></div>
-      <div class="detail">機械ベース ÷ 委託率${S.outsrcRate}%</div>
-      <div class="amount billable-amount">¥${Math.round(machineExpected).toLocaleString()}</div>
-    </div>
-  `);
-
-  // 照合結果: 最終請求額 vs 委託先支払(=機械ベース) で真の赤字/利益を判定
-  const realProfit = total - machineBase;
-  let compareLabel, compareColor;
-  if (machineBase === 0) {
-    compareLabel = '— 機械未入力';
-    compareColor = '#888';
-  } else if (realProfit > 0) {
-    compareLabel = `✓ プラス (利益+¥${Math.round(realProfit).toLocaleString()})`;
-    compareColor = '#1f7a3a';
-  } else if (realProfit < 0) {
-    compareLabel = `❌ マイナス (赤字−¥${Math.abs(Math.round(realProfit)).toLocaleString()})`;
-    compareColor = '#a04040';
-  } else {
-    compareLabel = `⚠ トントン`;
-    compareColor = '#d4a843';
+    blocks.push(`
+      <div class="breakdown-row billable-highlight">
+        <div class="label"><b>💴 顧客請求額</b></div>
+        <div class="detail">委託合計 ÷ 委託率${S.outsrcRate}%</div>
+        <div class="amount billable-amount">¥${machineBasedTotal.toLocaleString()}</div>
+      </div>
+    `);
   }
-  blocks.push(`
-    <div class="breakdown-row" style="background:#f7faf7;">
-      <div class="label" style="color:${compareColor};">粗利判定</div>
-      <div class="detail" style="color:${compareColor};">最終請求 − 委託先支払 = ${realProfit >= 0 ? '+' : '−'}¥${Math.abs(Math.round(realProfit)).toLocaleString()}</div>
-      <div class="amount" style="color:${compareColor};">${compareLabel}</div>
-    </div>
-  `);
 
-  // 補正
-  blocks.push(`<div class="breakdown-section">📐 補正・割引 (面積ベース ¥${estBase.toLocaleString()} に適用)</div>`);
+  // 粗利表示（機械ベース新ロジック）
+  const realProfit = total - machineBase;
+  const profitColor = machineBase === 0 ? '#888' : realProfit > 0 ? '#1f7a3a' : realProfit < 0 ? '#a04040' : '#d4a843';
+  const profitLabel = machineBase === 0 ? '— 機械未入力'
+    : realProfit > 0 ? `✓ 粗利 +¥${Math.round(realProfit).toLocaleString()}`
+    : realProfit < 0 ? `❌ 赤字 −¥${Math.abs(Math.round(realProfit)).toLocaleString()}`
+    : '⚠ トントン';
+  if (machineBase > 0) {
+    blocks.push(`
+      <div class="breakdown-row" style="background:#f7faf7;border-left:3px solid ${profitColor};">
+        <div class="label" style="color:${profitColor};"><b>${profitLabel}</b></div>
+        <div class="detail" style="color:${profitColor};">請求 − 委託 = ¥${total.toLocaleString()} − ¥${machineBase.toLocaleString()}</div>
+        <div class="amount" style="color:${profitColor};">¥${Math.round(realProfit).toLocaleString()}</div>
+      </div>
+    `);
+  }
+
+  // 参考: 面積ベース
+  blocks.push(`<div class="breakdown-section">📐 参考: 面積ベース試算 (${totalArea.toLocaleString()}㎡ × ${S.baseRateM2}円/㎡)</div>`);
   const terrainDetail = state.areaRows.filter(r => r.area > 0)
     .map(r => `${r.terrain}${r.area}㎡`).join(' / ');
   blocks.push(`
@@ -1465,12 +1452,13 @@ function renderRecordList() {
     return `
       <div class="record-item ${hasActual?'has-actual':''}" data-id="${e.id}">
         <div class="title">
-          <span class="record-open" data-id="${e.id}" style="flex:1;cursor:pointer;">${escapeHtml(e.site)}</span>
+          <span class="record-load-btn" data-id="${e.id}" style="flex:1;cursor:pointer;color:#2d5a3d;" title="見積タブに読み込む">${escapeHtml(e.site)}</span>
           <span class="badge ${hasActual?'act':'est'}">${hasActual?'実績済':'見積のみ'}</span>
+          <button class="record-actual-btn" data-id="${e.id}" style="background:none;border:1px solid #2d5a3d;color:#2d5a3d;padding:2px 8px;border-radius:8px;font-size:11px;cursor:pointer;margin-right:4px;">📋 実績</button>
           <button class="record-del-btn" data-id="${e.id}" data-site="${escapeHtml(e.site)}" title="削除">🗑 削除</button>
         </div>
         <div class="meta">
-          <span class="record-open" data-id="${e.id}" style="cursor:pointer;">
+          <span class="record-load-btn" data-id="${e.id}" style="cursor:pointer;" title="見積タブに読み込む">
             📅 ${e.date} / ${e.area}㎡ / 予定${hours.toFixed(1)}h${workDateLine}<br>
             💰 請求:¥${e.customerPrice.toLocaleString()} / 委託:¥${e.outsrcPay.toLocaleString()} / 粗利:¥${e.myProfit.toLocaleString()}<br>
             🛠 ${terrainLabel} / ${e.grass} / ${e.freq}
@@ -1488,8 +1476,14 @@ function renderRecordList() {
       quickDelete(id, site);
     });
   });
-  list.querySelectorAll('.record-open').forEach(el => {
-    el.addEventListener('click', () => openActualModal(el.dataset.id));
+  list.querySelectorAll('.record-load-btn').forEach(el => {
+    el.addEventListener('click', () => loadEstimateToForm(el.dataset.id));
+  });
+  list.querySelectorAll('.record-actual-btn').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      openActualModal(btn.dataset.id);
+    });
   });
   list.querySelectorAll('.record-assign-btn').forEach(btn => {
     btn.addEventListener('click', (ev) => {
@@ -1508,6 +1502,76 @@ function quickDelete(id, siteName) {
   renderRecordList();
   renderData();
   if (typeof renderSchedule === 'function') renderSchedule();
+}
+
+// ============================================================
+// ============================================================
+// 一覧から見積タブに読み込む
+// ============================================================
+function loadEstimateToForm(id) {
+  const e = getEstimates().find(x => x.id === id);
+  if (!e) return;
+
+  // 現場名・日付
+  document.getElementById('siteName').value = e.site || '';
+  const dateEl = document.getElementById('estDate');
+  if (dateEl) dateEl.value = e.date || '';
+
+  // 機械時間を復元
+  MACHINE_DEFS.forEach(def => {
+    const h = e.hours?.[def.key] || 0;
+    const hourEl = document.querySelector(`.mhour[data-m=${def.key}]`);
+    const areaEl = document.querySelector(`.marea[data-m=${def.key}]`);
+    if (hourEl) hourEl.value = h > 0 ? h : '';
+    if (areaEl) areaEl.value = '';
+  });
+
+  // 地形行を復元
+  state.areaRows = [];
+  if (e.areaRows && e.areaRows.length > 0) {
+    e.areaRows.forEach(r => addAreaRow(r.terrain, r.area || 0));
+  } else {
+    addAreaRow('平地', e.area || 0);
+  }
+
+  // 草の状態
+  if (e.grass) {
+    state.grass = e.grass;
+    state.grassMult = e.grassMult || 1.0;
+    document.querySelectorAll('#grassChips .chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.v === e.grass);
+    });
+  }
+
+  // 移動費エリア
+  if (e.dist) {
+    state.dist = e.dist;
+    state.distAdd = e.distAdd || 0;
+    document.querySelectorAll('#distChips .chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.v === e.dist);
+    });
+  }
+
+  // 契約形態
+  if (e.freq) {
+    state.freq = e.freq;
+    state.freqMult = e.freqMult || 1.0;
+    document.querySelectorAll('#freqChips .chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.v === e.freq);
+    });
+  }
+
+  // 再計算
+  renderAreaRows();
+  updateMachineAllocSummary();
+  calc();
+
+  // 見積タブに切り替え
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="estimate"]').classList.add('active');
+  document.getElementById('tab-estimate').classList.add('active');
+  window.scrollTo(0, 0);
 }
 
 // ============================================================
@@ -1744,7 +1808,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-01 14:00';
+const BUILD_STAMP = '2026-05-01 16:00';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
