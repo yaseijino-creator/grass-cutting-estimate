@@ -50,7 +50,2515 @@
     background: #fff;
     color: #2d5a3d;
     border: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
   }
-  HandlingData { display: none; }
-  .heading { font-weight: 600; font-size: 17px; margin: 30px 0 10px 0; color: #2d5a3d; border:
+  header .reload-btn:hover { background: #e8f0e8; }
+  .update-banner {
+    background: linear-gradient(135deg, #ff6b3d, #ff8f3d);
+    color: #fff;
+    padding: 12px 16px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    position: sticky;
+    top: 44px;
+    z-index: 18;
+    display: none;
+    animation: pulse 1.5s infinite;
+  }
+  .update-banner.show { display: block; }
+  .update-banner button {
+    margin-left: 8px;
+    padding: 6px 14px;
+    background: #fff;
+    color: #c03030;
+    border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.85; }
+  }
+  nav {
+    display: flex; background: #fff; border-bottom: 1px solid #ddd;
+    position: sticky; top: 44px; z-index: 19;
+  }
+  nav button {
+    flex: 1; padding: 11px 4px; border: none; background: #fff;
+    font-size: 13px; color: #555; border-bottom: 3px solid transparent;
+    cursor: pointer; font-weight: 500;
+  }
+  nav button.active {
+    color: #2d5a3d; border-bottom-color: #2d5a3d; background: #f7faf7; font-weight: 700;
+  }
+
+  main { padding: 12px; max-width: 640px; margin: 0 auto; }
+
+  /* ===== Card ===== */
+  .card {
+    background: #fff; border-radius: 12px; padding: 14px;
+    margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  }
+  .card h2 {
+    font-size: 15px; color: #2d5a3d; margin-bottom: 10px;
+    padding-bottom: 7px; border-bottom: 2px solid #e6efe6;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .card h2 .hint {
+    margin-left: auto; font-size: 11px; color: #888; font-weight: 400;
+  }
+
+  /* ===== Form ===== */
+  label {
+    display: block; font-size: 13px; color: #666; margin-bottom: 5px; font-weight: 500;
+  }
+  input[type="text"], input[type="number"], input[type="date"], select, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px;
+    font-size: 16px; background: #fafafa; font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: 2px solid #4a9668; border-color: #4a9668; background: #fff;
+  }
+  .field { margin-bottom: 10px; }
+  .field:last-child { margin-bottom: 0; }
+  .note {
+    background: #fffbe6; border-left: 3px solid #f0c040;
+    padding: 8px 10px; border-radius: 6px;
+    font-size: 12px; color: #7a6014; margin-top: 10px;
+  }
+
+  /* ===== Chip group ===== */
+  .chips {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 6px;
+  }
+  .chip {
+    padding: 10px 6px; border: 1.5px solid #d0d5d0; border-radius: 8px;
+    background: #fff; font-size: 13px; text-align: center;
+    cursor: pointer; user-select: none; transition: all .15s; line-height: 1.3;
+    font-weight: 500;
+  }
+  .chip small { display: block; font-size: 11px; opacity: .75; margin-top: 2px; }
+  .chip.active {
+    background: #2d5a3d; color: #fff; border-color: #2d5a3d; font-weight: 700;
+  }
+
+  /* ===== Area rows ===== */
+  .area-row {
+    display: grid; grid-template-columns: 1.5fr 1fr auto;
+    gap: 6px; align-items: center; margin-bottom: 8px;
+  }
+  .area-row select, .area-row input {
+    margin-bottom: 0; padding: 9px; font-size: 14px;
+  }
+  .area-row .del-btn {
+    width: 34px; height: 36px; border: none; border-radius: 8px;
+    background: #fdecec; color: #b04040; font-size: 18px; font-weight: 700;
+    cursor: pointer;
+  }
+  .area-row .del-btn:hover { background: #f5c8c8; }
+  .add-area-btn {
+    width: 100%; padding: 9px; border: 1.5px dashed #4a9668;
+    border-radius: 8px; background: #f7faf7; color: #2d5a3d;
+    font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px;
+  }
+  .add-area-btn:hover { background: #e6efe6; }
+  .area-summary {
+    margin-top: 10px; padding: 10px 12px; background: #f7faf7;
+    border-radius: 8px; display: flex; justify-content: space-between;
+    font-size: 13px; color: #2d5a3d;
+  }
+  .area-summary b { font-size: 16px; color: #2d5a3d; }
+
+  /* ===== Machine row ===== */
+  .machine-row {
+    display: grid; grid-template-columns: 1.1fr 0.9fr 0.9fr 0.8fr;
+    gap: 5px; align-items: center; margin-bottom: 7px;
+  }
+  .machine-row .mname {
+    padding: 10px 4px; background: #f7faf7; border-radius: 8px;
+    font-size: 12px; font-weight: 600; text-align: center; color: #2d5a3d;
+  }
+  .machine-row input { margin-bottom: 0; padding: 9px 6px; font-size: 14px; }
+  .machine-row .rate {
+    font-size: 11px; color: #666; text-align: center; font-weight: 500;
+  }
+  .machine-row.head { font-size: 11px; color: #888; margin-bottom: 4px; }
+  .machine-row.head div { text-align: center; }
+
+  /* ===== Result ===== */
+  .result-hero {
+    background: linear-gradient(135deg, #2d5a3d, #4a9668);
+    color: #fff; padding: 18px; border-radius: 12px;
+    text-align: center; margin-bottom: 12px;
+  }
+  .result-hero .label { font-size: 12px; opacity: .9; }
+  .result-hero .amount {
+    font-size: 36px; font-weight: 700; margin: 6px 0; letter-spacing: 0.5px;
+  }
+  .result-hero .per-m2 { font-size: 12px; opacity: .85; }
+  .result-hero .discount-badge {
+    display: inline-block; background: #ffeded; color: #c03050;
+    padding: 3px 10px; border-radius: 12px; font-size: 12px;
+    font-weight: 700; margin-top: 6px;
+  }
+
+  /* ===== Breakdown table ===== */
+  .breakdown {
+    background: #fff; border: 1px solid #e4ebe4; border-radius: 10px;
+    overflow: hidden;
+  }
+  .breakdown-section {
+    padding: 8px 10px; background: #f0f4f0; color: #2d5a3d;
+    font-size: 12px; font-weight: 700; border-bottom: 1px solid #e4ebe4;
+  }
+  .breakdown-row {
+    display: grid; grid-template-columns: 1fr 1.3fr auto;
+    gap: 8px; padding: 9px 10px; align-items: center;
+    border-bottom: 1px solid #f0f4f0; font-size: 13px;
+  }
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-row .label { color: #333; font-weight: 500; }
+  .breakdown-row .detail { color: #666; font-size: 12px; }
+  .breakdown-row .amount {
+    text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .breakdown-row.total {
+    background: #e6efe6; color: #2d5a3d;
+  }
+  .breakdown-row.total .label,
+  .breakdown-row.total .amount { font-weight: 700; font-size: 15px; }
+  .breakdown-row.discount {
+    background: #fff0f5; color: #a04040;
+  }
+  .breakdown-row.discount .label,
+  .breakdown-row.discount .amount { font-weight: 700; }
+  .breakdown-row.outsrc-item { padding-left: 24px; color: #7a5914; }
+  .breakdown-row.outsrc-total { background: #fff3d0; color: #8b6914; }
+  .breakdown-row.outsrc-total .label,
+  .breakdown-row.outsrc-total .amount { font-weight: 700; }
+  .breakdown-row.profit { background: #fffbe0; color: #8b6914; }
+  .breakdown-row.profit .label,
+  .breakdown-row.profit .amount { font-weight: 700; font-size: 15px; }
+  .breakdown-row.billable-highlight {
+    background: linear-gradient(135deg, #fff3d0, #ffe8a0);
+    border-top: 2px solid #d4a843;
+    border-bottom: 2px solid #d4a843;
+    padding: 14px 10px;
+  }
+  .breakdown-row.billable-highlight .label { color: #8b6914; font-size: 14px; }
+  .breakdown-row.billable-highlight .detail { color: #8b6914; font-size: 12px; }
+  .billable-amount {
+    font-size: 24px !important;
+    color: #c03050 !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.3px;
+  }
+  .diff-plus { color: #a04040; }
+  .diff-minus { color: #1f7a3a; }
+  .diff-zero { color: #888; }
+
+  /* ===== Action buttons ===== */
+  .btn {
+    display: block; width: 100%; padding: 13px;
+    border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
+    cursor: pointer; margin-top: 10px;
+  }
+  .btn-primary { background: #2d5a3d; color: #fff; }
+  .btn-secondary { background: #6c757d; color: #fff; }
+  .btn-warn { background: #d4a843; color: #fff; }
+  .btn-danger { background: #dc3545; color: #fff; }
+  .btn:disabled { background: #ccc; cursor: not-allowed; }
+
+  /* ===== Tab ===== */
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  /* ===== Customer view (modal) ===== */
+  .modal-bg {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.55); z-index: 100; padding: 12px;
+    overflow-y: auto;
+  }
+  .modal-bg.show { display: flex; align-items: flex-start; justify-content: center; }
+  .modal {
+    background: #fff; border-radius: 12px; padding: 16px;
+    max-width: 540px; width: 100%; margin: auto;
+  }
+  .modal h3 { color: #2d5a3d; margin-bottom: 12px; }
+
+  .quote-doc {
+    background: #fffef5; border: 2px solid #d4a843;
+    padding: 18px; border-radius: 10px;
+  }
+  .quote-doc h3 {
+    color: #8b6914; font-size: 17px; text-align: center;
+    margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 1.5px solid #d4a843;
+  }
+  .quote-row {
+    display: flex; justify-content: space-between;
+    padding: 6px 2px; font-size: 14px;
+    border-bottom: 1px dotted #f0e1b7;
+  }
+  .quote-row:last-of-type { border-bottom: none; }
+  .quote-row.sub { padding-left: 14px; color: #7a6014; font-size: 13px; }
+  .quote-section-label {
+    font-size: 12px; color: #8b6914; font-weight: 600;
+    margin: 10px 0 4px 0;
+  }
+  .quote-subtotal {
+    display: flex; justify-content: space-between;
+    margin-top: 8px; padding-top: 8px; border-top: 1px solid #d4a843;
+    font-size: 14px; font-weight: 700;
+  }
+  .quote-discount {
+    display: flex; justify-content: space-between;
+    margin-top: 8px; padding: 10px 12px;
+    background: linear-gradient(135deg, #ffeaf0, #fff0f5);
+    border: 1.5px solid #e89aaf; border-radius: 8px;
+    color: #c03050; font-weight: 700; font-size: 15px;
+  }
+  .quote-discount .label::before { content: '🎁 '; }
+  .quote-total {
+    margin-top: 12px; padding: 14px; background: #fff8e1;
+    border-radius: 10px; text-align: center;
+    font-size: 24px; font-weight: 700; color: #8b6914;
+    letter-spacing: 0.5px;
+  }
+  .quote-unit {
+    text-align: center; font-size: 12px; color: #8b6914;
+    margin-top: 6px;
+  }
+
+  /* ===== List items ===== */
+  .record-list { max-height: 70vh; overflow-y: auto; }
+  .record-item {
+    padding: 11px; background: #f7faf7; border-radius: 8px;
+    margin-bottom: 8px; font-size: 13px;
+    border-left: 4px solid #2d5a3d; cursor: pointer;
+  }
+  .record-item.has-actual { border-left-color: #d4a843; background: #fffbe6; }
+  .record-item .title {
+    font-weight: 700; margin-bottom: 4px;
+    display: flex; justify-content: space-between; align-items: center; gap: 6px;
+  }
+  .record-item .meta { color: #555; font-size: 12px; line-height: 1.6; }
+  .record-del-btn {
+    background: #c03050; color: #fff;
+    border: none; border-radius: 6px;
+    padding: 5px 12px; font-size: 12px; font-weight: 700;
+    cursor: pointer; flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(192,48,80,0.25);
+  }
+  .record-del-btn:hover { background: #a02040; transform: translateY(-1px); }
+  .record-del-btn:active { transform: translateY(0); }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 500;
+  }
+  .badge.est { background: #d4edda; color: #155724; }
+  .badge.act { background: #ffe8a0; color: #856404; }
+
+  /* ===== Stats ===== */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .stat-grid.two { grid-template-columns: 1fr 1fr; }
+  .stat-box {
+    background: #f7faf7; padding: 12px 8px; border-radius: 8px; text-align: center;
+  }
+  .stat-box .num {
+    font-size: 18px; font-weight: 700; color: #2d5a3d;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-box .lbl { font-size: 11px; color: #666; margin-top: 3px; line-height: 1.3; }
+
+  /* ===== Print ===== */
+  @media print {
+    body { background: #fff; padding: 0; }
+    header, nav, .no-print { display: none !important; }
+    .modal-bg { position: static; background: none; padding: 0; display: block; }
+    .modal { max-width: 100%; box-shadow: none; padding: 0; }
+    .quote-doc { border: 1.5px solid #000; background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 草刈り見積ツール</h1>
+  <div class="right-info">
+    <span class="version">v3</span>
+    <button class="reload-btn" onclick="forceReload()" title="強制再読込">🔄</button>
+    <span class="build" id="buildTime"></span>
+  </div>
+</header>
+
+<div class="update-banner" id="updateBanner">
+  🎉 新しいバージョンが利用可能です
+  <button onclick="forceReload()">今すぐ更新</button>
+</div>
+
+<nav>
+  <button class="tab-btn active" data-tab="estimate">見積</button>
+  <button class="tab-btn" data-tab="list">一覧</button>
+  <button class="tab-btn" data-tab="schedule">📅予定</button>
+  <button class="tab-btn" data-tab="members">👥人員</button>
+  <button class="tab-btn" data-tab="data">データ</button>
+  <button class="tab-btn" data-tab="setting">設定</button>
+</nav>
+
+<main>
+
+<!-- ============================ 見積 TAB ============================ -->
+<section class="tab active" id="tab-estimate">
+
+  <div class="card">
+    <h2>📋 案件情報</h2>
+    <div class="field">
+      <label>案件名</label>
+      <input type="text" id="siteName" placeholder="例:田中さん田んぼ畔">
+    </div>
+    <div class="field">
+      <label>エリア（同エリア優先のスケジュール組みに使用）</label>
+      <input type="text" id="siteArea" placeholder="例:吉賀町木部谷">
+    </div>
+    <div class="field">
+      <label>見積日</label>
+      <input type="date" id="estDate">
+    </div>
+    <div class="field">
+      <label>作業予定日（任意・スケジュールに反映）</label>
+      <input type="date" id="workDate">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📐 面積 / 地形
+      <span class="hint">複数の地形OK</span>
+    </h2>
+    <div id="areaRows"></div>
+    <button class="add-area-btn" onclick="addAreaRow()">＋ 地形を追加</button>
+    <div class="area-summary">
+      <span>合計面積: <b id="totalArea">0</b> ㎡</span>
+      <span>平均補正: <b id="avgMult">×1.00</b></span>
+    </div>
+    <div class="note">地形ごとに面積を入力。補正は面積で加重平均されます。</div>
+    <div class="note" style="background:#fff8e1;border-left:3px solid #f5b400;padding:8px 10px;margin-top:8px;font-size:12px;line-height:1.6;">
+      <b>地形別の単価（実費）</b><br>
+      ・<b>平地</b> 11円/㎡　・<b>畔・法面</b> 18円/㎡（方面草刈機が入る場所）<br>
+      ・<b>傾斜</b> 25円/㎡　・<b>急傾斜地</b> 40円/㎡（足場が悪い）<br>
+      ・<b>障害物多い</b> 30円/㎡（石・家付近）
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🛠 使用機械 <span class="hint">担当㎡ か 時間、どちらか入力</span></h2>
+    <div class="machine-row head">
+      <div>機械</div><div>担当 (㎡)</div><div>時間 (h)</div><div>時給</div>
+    </div>
+    <div class="machine-row">
+      <div class="mname">仮払機</div>
+      <input type="number" class="marea" data-m="karibaraiki" inputmode="numeric" placeholder="㎡">
+      <input type="number" class="mhour" data-m="karibaraiki" step="0.25" inputmode="decimal" placeholder="h">
+      <div class="rate" id="r-karibaraiki">¥3,000/h</div>
+    </div>
+    <div class="machine-row">
+      <div class="mname">方面草刈り機</div>
+      <input type="number" class="marea" data-m="homen" inputmode="numeric" placeholder="㎡">
+      <input type="number" class="mhour" data-m="homen" step="0.25" inputmode="decimal" placeholder="h">
+      <div class="rate" id="r-homen">¥4,000/h</div>
+    </div>
+    <div class="machine-row">
+      <div class="mname">ハンマーモア</div>
+      <input type="number" class="marea" data-m="hammer" inputmode="numeric" placeholder="㎡">
+      <input type="number" class="mhour" data-m="hammer" step="0.25" inputmode="decimal" placeholder="h">
+      <div class="rate" id="r-hammer">¥5,000/h</div>
+    </div>
+    <button class="add-area-btn" onclick="autoFillHoursFromArea()" style="margin-top:6px;">⚡ 入力した担当㎡から時間を自動計算</button>
+    <div class="area-summary" id="machineAllocSummary" style="margin-top:8px;">
+      <span>機械割当合計: <b id="machineAllocTotal">0</b> ㎡</span>
+      <span>地形合計との差: <b id="machineAllocDiff">—</b></span>
+    </div>
+    <div class="note">担当㎡⇔時間は双方向で自動計算されます(地形難易度込み)。機械割当合計と地形合計が一致するのが理想。</div>
+  </div>
+
+  <div class="card">
+    <h2>🌱 草の状態</h2>
+    <div class="chips" id="grassChips">
+      <div class="chip active" data-v="中度" data-mult="1.0">中度<small>×1.0</small></div>
+      <div class="chip" data-v="重度" data-mult="1.3">重度<small>×1.3</small></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🚚 移動費 (現場エリア別)</h2>
+    <div class="chips" id="distChips">
+      <div class="chip active" data-v="吉賀町" data-add="0">吉賀町<small>無料</small></div>
+      <div class="chip" data-v="津和野・日原" data-add="3000">津和野・日原<small>+3,000円</small></div>
+      <div class="chip" data-v="益田" data-add="5000">益田<small>+5,000円</small></div>
+      <div class="chip" data-v="その他遠方" data-add="8000">その他遠方<small>+8,000円</small></div>
+    </div>
+    <div class="note">移動費は1案件につき固定額。複数人での移動でも1回分のみ。</div>
+  </div>
+
+  <div class="card">
+    <h2>📝 契約形態 (割引)</h2>
+    <div class="chips" id="freqChips">
+      <div class="chip active" data-v="単発" data-mult="1.0">単発<small>割引なし</small></div>
+      <div class="chip" data-v="年2回" data-mult="0.97">年2回<small>-3%</small></div>
+      <div class="chip" data-v="年3回" data-mult="0.94">年3回<small>-6%</small></div>
+      <div class="chip" data-v="年4回+" data-mult="0.90">年4回+<small>-10%</small></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💰 計算結果</h2>
+    <div class="result-hero">
+      <div class="label">顧客請求額 (税抜)</div>
+      <div class="amount" id="totalDisp">—</div>
+      <div class="per-m2" id="perM2Disp">— 円/㎡</div>
+      <div id="discountBadge"></div>
+    </div>
+
+    <div class="breakdown" id="breakdownArea">
+      <div class="breakdown-row">
+        <div class="label" style="text-align:center;grid-column:1/4;color:#999;padding:14px 0;">
+          面積と機械時間を入力してください
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="openCustomerView()">📄 顧客見積書を表示</button>
+    <button class="btn btn-warn" onclick="saveEstimate()">💾 見積を保存</button>
+    <button class="btn btn-secondary" onclick="clearForm()">🔄 フォームリセット</button>
+  </div>
+
+</section>
+
+<!-- ============================ 一覧 TAB ============================ -->
+<section class="tab" id="tab-list">
+  <div class="card">
+    <h2>📋 見積一覧
+      <span class="hint"><button class="add-area-btn" style="width:auto;padding:6px 12px;margin:0;font-size:12px;" onclick="renderRecordList()">🔄 更新</button></span>
+    </h2>
+    <div class="note">タップ → 実績入力 / 見積と実績の差で精度を高めます</div>
+    <div class="record-list" id="recordList">データなし</div>
+  </div>
+</section>
+
+<!-- ============================ データ TAB ============================ -->
+<section class="tab" id="tab-data">
+  <div class="card">
+    <h2>📊 機械別 実効率</h2>
+    <div class="stat-grid" id="machineStats">
+      <div class="stat-box"><div class="num">—</div><div class="lbl">データなし</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>💹 収支サマリー</h2>
+    <div class="stat-grid" id="profitStats">
+      <div class="stat-box"><div class="num">—</div><div class="lbl">総売上</div></div>
+      <div class="stat-box"><div class="num">—</div><div class="lbl">総粗利</div></div>
+      <div class="stat-box"><div class="num">—</div><div class="lbl">件数</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ データ管理</h2>
+    <button class="btn btn-secondary" onclick="exportCSV()">📤 CSVエクスポート</button>
+    <button class="btn btn-secondary" onclick="backupJSON()">📦 JSONバックアップ</button>
+    <input type="file" id="restoreFile" style="display:none" accept=".json" onchange="restoreJSON(event)">
+    <button class="btn btn-secondary" onclick="document.getElementById('restoreFile').click()">📥 バックアップ復元</button>
+    <button class="btn btn-danger" onclick="clearAllData()">🗑 全データ削除</button>
+  </div>
+
+  <div class="card">
+    <h2>☁️ GitHub バックアップ <span class="hint">データを失わない安心設定</span></h2>
+    <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
+      ブラウザのlocalStorageは消える可能性があります。GitHubに保存することで、いつでも復元可能になります。<br>
+      <b>初回のみ</b> Personal Access Token (PAT) の登録が必要です。
+    </p>
+    <div class="field">
+      <label>GitHub Token (PAT)</label>
+      <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxx (一度入力すれば保存されます)">
+    </div>
+    <div class="field">
+      <label>リポジトリ (owner/repo)</label>
+      <input type="text" id="ghRepo" placeholder="例: yaseijino-creator/kusakari-site">
+    </div>
+    <div class="field">
+      <label>ファイルパス</label>
+      <input type="text" id="ghPath" value="data/backup.json" placeholder="例: data/backup.json">
+    </div>
+    <div id="ghStatus" style="font-size:12px;color:#555;padding:8px;background:#f7faf7;border-radius:6px;margin-bottom:10px;">
+      最終保存: <span id="ghLastSync">未設定</span>
+    </div>
+    <button class="btn btn-primary" onclick="saveGitHubSettings()">💾 設定を保存</button>
+    <button class="btn btn-warn" onclick="syncToGitHub()">🔼 GitHubに保存</button>
+    <button class="btn btn-secondary" onclick="loadFromGitHub()">🔽 GitHubから読込</button>
+    <details style="margin-top:10px;font-size:12px;">
+      <summary style="cursor:pointer;color:#2d5a3d;font-weight:600;">📖 GitHub Token の作成方法（クリックで展開）</summary>
+      <ol style="padding:10px 20px;line-height:1.8;background:#fffbe6;border-radius:6px;margin-top:6px;">
+        <li><a href="https://github.com/settings/tokens?type=beta" target="_blank">https://github.com/settings/tokens?type=beta</a> を開く</li>
+        <li>「Generate new token」をクリック</li>
+        <li>Token name: <code>kusakari-data</code> など</li>
+        <li>Expiration: <b>No expiration</b> または好きな期間</li>
+        <li>Repository access: <b>Only select repositories</b> → kusakari-site を選択</li>
+        <li>Permissions → Repository permissions:<br>
+          <b>Contents: Read and write</b> に設定</li>
+        <li>「Generate token」→ 出てきた <code>github_pat_xxxxx</code> をコピーして上の欄に貼り付け</li>
+      </ol>
+    </details>
+  </div>
+</section>
+
+<!-- ============================ 設定 TAB ============================ -->
+<section class="tab" id="tab-setting">
+  <div class="card">
+    <h2>💴 機械別 時給</h2>
+    <div class="field"><label>仮払機 (円/h)</label><input type="number" id="set-rk" inputmode="numeric"></div>
+    <div class="field"><label>方面草刈り機 (円/h)</label><input type="number" id="set-rh" inputmode="numeric"></div>
+    <div class="field"><label>ハンマーモア (円/h)</label><input type="number" id="set-rm" inputmode="numeric"></div>
+  </div>
+
+  <div class="card">
+    <h2>⚡ 機械別 作業効率 (㎡/h)</h2>
+    <div class="field"><label>仮払機 (㎡/h)</label><input type="number" id="set-ek" inputmode="numeric"></div>
+    <div class="field"><label>方面草刈り機 (㎡/h)</label><input type="number" id="set-eh" inputmode="numeric"></div>
+    <div class="field"><label>ハンマーモア (㎡/h)</label><input type="number" id="set-em" inputmode="numeric"></div>
+    <div class="note">見積時の「担当㎡⇔時間」変換に使用。地形難易度が高い時は自動的に時間が増えます。(例 平地×1.0 / 傾斜×3.0)</div>
+  </div>
+
+  <div class="card">
+    <h2>📐 面積ベース見積 基準単価</h2>
+    <div class="field"><label>基準単価 (円/㎡)</label><input type="number" id="set-m2rate" inputmode="numeric"></div>
+    <div class="note">面積ベース見積の算出基準。面積 × この単価 = 基準作業費。機械ベース(時間×時給)と照合して妥当性をチェック。</div>
+  </div>
+
+  <div class="card">
+    <h2>🤝 委託設定</h2>
+    <div class="field"><label>委託先支払率 (%)</label><input type="number" id="set-outsrc" inputmode="numeric" min="0" max="100"></div>
+    <div class="note">委託先には「合計額×%」を支払い、残りが自分の粗利。機械ごとの配分も試算表に表示されます。</div>
+  </div>
+
+  <div class="card">
+    <h2>🛡 最低料金</h2>
+    <div class="field">
+      <label>最低料金 (円)</label>
+      <input type="number" id="set-min" inputmode="numeric">
+      <div style="font-size:11px;color:#666;margin-top:3px;">どんな小さな案件でも最低これだけは請求する金額(全案件に適用)</div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="saveSettings()">💾 設定を保存</button>
+  <button class="btn btn-secondary" onclick="resetSettings()">↻ 初期値に戻す</button>
+</section>
+
+</main>
+
+<!-- ============================ 📅 スケジュール TAB ============================ -->
+<section class="tab" id="tab-schedule">
+  <div class="card">
+    <h2>📅 作業スケジュール <span class="hint">同エリア優先・移動最小</span></h2>
+    <p class="note">「作業予定日」を入れた案件が日付ごとに自動整理されます。エリア順にソートされ、移動が最小になるよう一覧表示します。</p>
+    <button class="action-btn secondary" onclick="renderSchedule()" style="width:auto;padding:8px 14px;font-size:13px;margin-top:6px;">🔄 再生成</button>
+    <div id="scheduleArea" style="margin-top:14px;"></div>
+  </div>
+</section>
+
+<!-- ============================ 👥 メンバー TAB ============================ -->
+<section class="tab" id="tab-members">
+  <div class="card">
+    <h2>👥 メンバー管理</h2>
+    <p class="note">メンバーごとに使用可能な機械（スキル）と稼働状況を登録。スケジュール時の人員割当に使用されます。</p>
+    <div id="memberList" style="margin-top:14px;"></div>
+    <button class="action-btn" onclick="openMemberModal()" style="margin-top:10px;">＋ メンバーを追加</button>
+  </div>
+
+  <div class="card">
+    <h2>🛠 機械×メンバー対応マトリクス</h2>
+    <div id="memberMatrix"></div>
+  </div>
+</section>
+
+<!-- ============================ 👥 案件への人員割当 MODAL ============================ -->
+<div class="modal-bg" id="assignModal">
+  <div class="modal" style="max-width:560px;">
+    <h3>👥 担当者・機械・面積を割当</h3>
+    <input type="hidden" id="assignEstId">
+    <div id="assignInfo" style="background:#f7faf7;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;"></div>
+    <p style="font-size:12px;color:#555;margin-bottom:6px;">担当者ごとに「機械」と「担当面積」を割当てます。<br>時間と委託金は自動計算されます（時間 = 面積 × 補正 ÷ 機械効率、金額 = 時間 × 時給）。</p>
+    <div id="assignRows" style="margin-bottom:8px;"></div>
+    <button class="action-btn secondary" style="padding:8px;font-size:13px;margin-top:0;" onclick="addAssignRow()">＋ 担当を追加</button>
+    <div id="assignSummary" style="background:#fffbe6;border-left:4px solid #f0c040;padding:10px 12px;border-radius:6px;margin-top:10px;font-size:13px;line-height:1.8;"></div>
+    <div id="assignWarning" style="display:none;background:#fdecec;border-left:4px solid #c03050;padding:8px 12px;border-radius:6px;margin-top:8px;font-size:12px;color:#a02040;"></div>
+    <button class="action-btn" style="margin-top:14px;" onclick="saveAssignment()">💾 担当を保存</button>
+    <button class="action-btn warn" onclick="autoAssignMembers()">⚡ 必要機械から自動割当</button>
+    <button class="action-btn secondary" onclick="closeAssignModal()">閉じる</button>
+  </div>
+</div>
+
+<!-- ============================ 👤 メンバー追加/編集 MODAL ============================ -->
+<div class="modal-bg" id="memberModal">
+  <div class="modal">
+    <h3 id="memberModalTitle">👤 メンバーを追加</h3>
+    <input type="hidden" id="memberId">
+    <div class="field"><label>名前</label><input type="text" id="memberName" placeholder="例: 田中太郎"></div>
+    <div class="field">
+      <label>使用可能な機械（タップで切替）</label>
+      <div class="chips" id="memberSkills" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
+        <div class="chip" data-skill="karibaraiki">仮払機</div>
+        <div class="chip" data-skill="homen">方面草刈機</div>
+        <div class="chip" data-skill="hammer">ハンマーモア</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>稼働状況</label>
+      <select id="memberStatus" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:15px;">
+        <option value="active">稼働中</option>
+        <option value="inactive">休止中</option>
+      </select>
+    </div>
+    <button class="action-btn" onclick="saveMember()">💾 保存</button>
+    <button class="action-btn danger" id="memberDeleteBtn" style="display:none" onclick="deleteMember()">🗑 削除</button>
+    <button class="action-btn secondary" onclick="closeMemberModal()">閉じる</button>
+  </div>
+</div>
+
+<!-- ============================ 顧客見積書 MODAL ============================ -->
+<div class="modal-bg" id="customerModal">
+  <div class="modal">
+    <div id="customerDoc"></div>
+    <button class="btn btn-primary no-print" style="margin-top:12px;" onclick="window.print()">🖨 印刷</button>
+    <button class="btn btn-secondary no-print" onclick="closeCustomerView()">閉じる</button>
+  </div>
+</div>
+
+<!-- ============================ 実績入力 MODAL ============================ -->
+<div class="modal-bg" id="actualModal">
+  <div class="modal">
+    <h3 id="modalTitle">📝 実績入力</h3>
+    <div id="modalInfo" style="background:#f7faf7;padding:10px;border-radius:8px;margin-bottom:12px;font-size:13px;"></div>
+    <div class="field"><label>作業日</label><input type="date" id="actualDate"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="field"><label>実・仮払機 時間(h)</label><input type="number" id="actualK" step="0.25" inputmode="decimal"></div>
+      <div class="field"><label>実・方面 時間(h)</label><input type="number" id="actualH" step="0.25" inputmode="decimal"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="field"><label>実・ハンマー 時間(h)</label><input type="number" id="actualM" step="0.25" inputmode="decimal"></div>
+      <div class="field"><label>実・請求額(円)</label><input type="number" id="actualPrice" inputmode="numeric"></div>
+    </div>
+    <div class="field"><label>実・委託先支払(円)</label><input type="number" id="actualOutsrc" inputmode="numeric"></div>
+    <div class="field"><label>メモ</label><textarea id="actualMemo" rows="2"></textarea></div>
+
+    <button class="btn btn-primary" onclick="saveActual()">💾 実績を保存</button>
+    <button class="btn btn-danger" onclick="deleteEstimate()">🗑 この見積を削除</button>
+    <button class="btn btn-secondary" onclick="closeActualModal()">閉じる</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// 定義
+// ============================================================
+const DEFAULT_SETTINGS = {
+  rateKaribaraiki: 3000,
+  rateHomen: 4000,
+  rateHammer: 5000,
+  // 効率 (㎡/h) - 基準地形での目安
+  effKaribaraiki: 150,
+  effHomen: 250,
+  effHammer: 500,
+  // 面積ベース見積用: 基準単価 (円/㎡) ※平地11円/㎡
+  baseRateM2: 11,
+  outsrcRate: 60,
+  minPrice: 3000
+};
+
+// 地形別単価（円/㎡ 直接設定）
+const TERRAIN_OPTIONS = [
+  {name:'平地',       price:11},
+  {name:'畔・法面',   price:18},
+  {name:'傾斜',       price:25},
+  {name:'急傾斜地',   price:40},
+  {name:'障害物多い', price:30}
+];
+
+const TERRAIN_DESC = {
+  '平地': '平らな場所',
+  '畔・法面': '田畑の畦道・法面（方面草刈機が入る場所）',
+  '傾斜': 'なだらかな傾斜地',
+  '急傾斜地': '急峻な斜面・足場が悪い場所',
+  '障害物多い': '石等がある場所・家等のものがある場所付近'
+};
+
+const MACHINE_DEFS = [
+  {key:'karibaraiki', name:'仮払機',       rateKey:'rateKaribaraiki', effKey:'effKaribaraiki'},
+  {key:'homen',       name:'方面草刈り機', rateKey:'rateHomen',       effKey:'effHomen'},
+  {key:'hammer',      name:'ハンマーモア', rateKey:'rateHammer',      effKey:'effHammer'}
+];
+
+// ============================================================
+// 状態
+// ============================================================
+let state = {
+  areaRows: [],
+  grass: '中度', grassMult: 1.0,
+  dist: '吉賀町', distAdd: 0,
+  freq: '単発', freqMult: 1.0,
+  editingId: null
+};
+
+// ============================================================
+// 設定ストア
+// ============================================================
+function getSettings() {
+  const s = JSON.parse(localStorage.getItem('mowingSettingsV3') || 'null');
+  return s ? { ...DEFAULT_SETTINGS, ...s } : { ...DEFAULT_SETTINGS };
+}
+function putSettings(s) {
+  localStorage.setItem('mowingSettingsV3', JSON.stringify(s));
+}
+function getEstimates() {
+  // v3 優先、なければv2データを読み込み
+  const v3 = JSON.parse(localStorage.getItem('mowingEstimatesV3') || 'null');
+  if (v3) return v3;
+  return JSON.parse(localStorage.getItem('mowingEstimates') || '[]');
+}
+function putEstimates(arr) {
+  localStorage.setItem('mowingEstimatesV3', JSON.stringify(arr));
+}
+
+// ============================================================
+// 面積・地形 行管理
+// ============================================================
+function addAreaRow(terrainName, area) {
+  const t = TERRAIN_OPTIONS.find(o => o.name === terrainName) || TERRAIN_OPTIONS[0];
+  state.areaRows.push({
+    id: 'r' + Date.now() + Math.floor(Math.random()*1000),
+    terrain: t.name, price: t.price,
+    // mult は機械時間計算用（price/11 = 平地基準の難易度係数）
+    mult: t.price / 11,
+    area: area || 0
+  });
+  renderAreaRows();
+  calc();
+}
+function removeAreaRow(id) {
+  state.areaRows = state.areaRows.filter(r => r.id !== id);
+  if (state.areaRows.length === 0) {
+    addAreaRow('平地', 0);
+  } else {
+    renderAreaRows();
+    calc();
+  }
+}
+function updateAreaRow(id, field, value) {
+  const row = state.areaRows.find(r => r.id === id);
+  if (!row) return;
+  if (field === 'terrain') {
+    const t = TERRAIN_OPTIONS.find(o => o.name === value);
+    if (t) { row.terrain = t.name; row.price = t.price; row.mult = t.price / 11; }
+  } else if (field === 'area') {
+    row.area = parseFloat(value) || 0;
+  }
+  updateAreaSummary();
+  calc();
+}
+function renderAreaRows() {
+  const html = state.areaRows.map(r => {
+    const opts = TERRAIN_OPTIONS.map(o =>
+      `<option value="${o.name}" ${r.terrain===o.name?'selected':''}>${o.name} (${o.price}円/㎡)</option>`
+    ).join('');
+    return `
+      <div class="area-row" data-id="${r.id}">
+        <select onchange="updateAreaRow('${r.id}','terrain',this.value)">${opts}</select>
+        <input type="number" placeholder="面積 (㎡)" inputmode="numeric" value="${r.area||''}"
+               oninput="updateAreaRow('${r.id}','area',this.value)">
+        <button class="del-btn" onclick="removeAreaRow('${r.id}')" title="削除">×</button>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('areaRows').innerHTML = html;
+  updateAreaSummary();
+}
+function updateAreaSummary() {
+  const totalArea = state.areaRows.reduce((s,r) => s + (r.area||0), 0);
+  // 加重平均単価 (円/㎡)
+  const weightedPrice = state.areaRows.reduce((s,r) => s + (r.area||0) * (r.price||11), 0);
+  const avgPrice = totalArea > 0 ? weightedPrice / totalArea : 11;
+  document.getElementById('totalArea').textContent = totalArea.toLocaleString();
+  document.getElementById('avgMult').textContent = avgPrice.toFixed(1) + '円/㎡';
+  if (typeof updateMachineAllocSummary === 'function') updateMachineAllocSummary();
+}
+
+// ============================================================
+// チップ群
+// ============================================================
+function setupChips(groupId, onSelect) {
+  const group = document.getElementById(groupId);
+  group.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      group.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      onSelect(chip);
+      calc();
+    });
+  });
+}
+setupChips('grassChips', c => { state.grass = c.dataset.v; state.grassMult = parseFloat(c.dataset.mult); });
+setupChips('distChips', c => {
+  state.dist = c.dataset.v;
+  state.distAdd = parseInt(c.dataset.add);
+});
+setupChips('freqChips', c => { state.freq = c.dataset.v; state.freqMult = parseFloat(c.dataset.mult); });
+
+// ============================================================
+// タブ
+// ============================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'list') renderRecordList();
+    if (btn.dataset.tab === 'data') renderData();
+    if (btn.dataset.tab === 'setting') loadSettingsForm();
+  });
+});
+
+// ============================================================
+// 入力イベント
+// ============================================================
+document.getElementById('workers')?.addEventListener('input', calc);
+
+// 時間を直接入力したとき: 対応する面積フィールドを連動
+document.querySelectorAll('.mhour').forEach(i => {
+  i.addEventListener('input', (ev) => {
+    syncAreaFromHours(ev.target.dataset.m);
+    updateMachineAllocSummary();
+    calc();
+  });
+});
+
+// 担当面積を入力したとき: 時間を自動計算
+document.querySelectorAll('.marea').forEach(i => {
+  i.addEventListener('input', (ev) => {
+    syncHoursFromArea(ev.target.dataset.m);
+    updateMachineAllocSummary();
+    calc();
+  });
+});
+
+// 機械割り振り合計と残数を更新
+function updateMachineAllocSummary() {
+  const totalMachineArea = MACHINE_DEFS.reduce((sum, def) => {
+    const v = parseFloat(document.querySelector(`.marea[data-m=${def.key}]`).value) || 0;
+    return sum + v;
+  }, 0);
+  const totalSiteArea = state.areaRows.reduce((s,r) => s + (r.area||0), 0);
+
+  document.getElementById('machineAllocTotal').textContent = totalMachineArea.toLocaleString();
+
+  const diffEl = document.getElementById('machineAllocDiff');
+  if (totalSiteArea === 0) {
+    diffEl.textContent = '—';
+    diffEl.style.color = '';
+  } else {
+    const diff = totalSiteArea - totalMachineArea;
+    if (diff === 0) {
+      diffEl.textContent = '✓ 一致';
+      diffEl.style.color = '#1f7a3a';
+    } else if (diff > 0) {
+      diffEl.textContent = `残 ${diff.toLocaleString()} ㎡`;
+      diffEl.style.color = diff > totalSiteArea * 0.1 ? '#a04040' : '#d4a843';
+    } else {
+      diffEl.textContent = `超過 ${Math.abs(diff).toLocaleString()} ㎡`;
+      diffEl.style.color = '#a04040';
+    }
+  }
+}
+
+// 現在の平均地形補正 (ここが0のときはフォールバックで1.0)
+function currentTerrainMult() {
+  const totalArea = state.areaRows.reduce((s,r) => s + (r.area||0), 0);
+  if (totalArea === 0) return 1.0;
+  const weighted = state.areaRows.reduce((s,r) => s + (r.area||0) * r.mult, 0);
+  return weighted / totalArea;
+}
+
+// 担当面積 → 時間 (地形難易度を考慮)
+function syncHoursFromArea(machineKey) {
+  const S = getSettings();
+  const def = MACHINE_DEFS.find(d => d.key === machineKey);
+  if (!def) return;
+  const eff = S[def.effKey] || 100;
+  const mult = currentTerrainMult();
+  const areaEl = document.querySelector(`.marea[data-m=${machineKey}]`);
+  const hourEl = document.querySelector(`.mhour[data-m=${machineKey}]`);
+  const area = parseFloat(areaEl.value);
+  if (!isNaN(area) && area > 0) {
+    // hours = area × avgTerrainMult / efficiency_base
+    const hours = (area * mult) / eff;
+    hourEl.value = (Math.ceil(hours * 4) / 4).toFixed(2);  // 0.25h単位で切り上げ
+  } else if (areaEl.value === '') {
+    // areaを空にした場合は時間はそのまま
+  }
+}
+
+// 時間 → 面積 (逆算)
+function syncAreaFromHours(machineKey) {
+  const S = getSettings();
+  const def = MACHINE_DEFS.find(d => d.key === machineKey);
+  if (!def) return;
+  const eff = S[def.effKey] || 100;
+  const mult = currentTerrainMult();
+  const areaEl = document.querySelector(`.marea[data-m=${machineKey}]`);
+  const hourEl = document.querySelector(`.mhour[data-m=${machineKey}]`);
+  const hours = parseFloat(hourEl.value);
+  if (!isNaN(hours) && hours > 0) {
+    // area = hours × efficiency_base / avgTerrainMult
+    const area = (hours * eff) / mult;
+    areaEl.value = Math.round(area);
+  } else if (hourEl.value === '') {
+    // hoursを空にしても面積はそのまま(ユーザーが面積を先に入れている可能性)
+  }
+}
+
+// 明示的に全機械で面積から時間を計算するボタン
+function autoFillHoursFromArea() {
+  let filled = 0;
+  MACHINE_DEFS.forEach(def => {
+    const areaEl = document.querySelector(`.marea[data-m=${def.key}]`);
+    if (parseFloat(areaEl.value) > 0) {
+      syncHoursFromArea(def.key);
+      filled++;
+    }
+  });
+  if (filled === 0) {
+    alert('担当面積(㎡)を機械ごとに入力してください');
+    return;
+  }
+  calc();
+}
+
+// ============================================================
+// 計算
+// ============================================================
+function calc() {
+  const S = getSettings();
+  const workers = parseInt(document.getElementById('workers')?.value) || 1;
+
+  // 機械時間
+  const machines = MACHINE_DEFS.map(def => {
+    const h = parseFloat(document.querySelector(`.mhour[data-m=${def.key}]`).value) || 0;
+    return { key: def.key, name: def.name, hours: h, rate: S[def.rateKey] };
+  }).filter(m => m.hours > 0);
+  machines.forEach(m => m.base = m.hours * m.rate);
+  const totalHours = machines.reduce((s,m) => s + m.hours, 0);
+  const basePrice = machines.reduce((s,m) => s + m.base, 0);
+
+  // 面積・地形（単価直接計算）
+  const totalArea = state.areaRows.reduce((s,r) => s + (r.area||0), 0);
+  // 各地形行の（面積 × 単価）の合計 = 地形ベースの作業費
+  const weightedPriceSum = state.areaRows.reduce((s,r) => s + (r.area||0) * (r.price || r.mult*11 || 11), 0);
+  const avgTerrainPrice = totalArea > 0 ? weightedPriceSum / totalArea : 11; // 平均単価 (円/㎡)
+  const avgTerrainMult = avgTerrainPrice / 11; // 機械時間計算用（難易度係数）
+
+  if (totalArea === 0) {
+    document.getElementById('totalDisp').textContent = '—';
+    document.getElementById('perM2Disp').textContent = '— 円/㎡';
+    document.getElementById('discountBadge').innerHTML = '';
+    document.getElementById('breakdownArea').innerHTML =
+      `<div class="breakdown-row"><div class="label" style="text-align:center;grid-column:1/4;color:#999;padding:14px 0;">面積を入力してください</div></div>`;
+    return null;
+  }
+
+  // === 面積ベース = 地形別単価 × 面積 の合計（草状態・契約割引を適用）===
+  const areaBase = weightedPriceSum;               // 地形単価 × 面積 の合計
+  const estBase = areaBase;
+  const afterTerrain = estBase;                    // 単価に地形がすでに含まれているのでそのまま
+  const afterGrass = afterTerrain * state.grassMult;
+  const afterFreq = afterGrass * state.freqMult;
+  const discountAmount = afterGrass - afterFreq;
+  const terrainDiff = 0; // 単価直接計算のため地形補正差額なし
+  const grassDiff = afterGrass - afterTerrain;
+
+  // === 機械ベース = 委託先に払う金額 (時間 × 時給 の合計) ===
+  const machineBase = basePrice;
+
+  // 顧客請求額 = 機械ベース ÷ 委託率
+  // 例: 機械計60,000円、委託率60% → 60,000÷0.6 = 100,000円を顧客に請求
+  const outsrcFraction = S.outsrcRate > 0 ? S.outsrcRate / 100 : 0.6;
+  const machineBasedTotal = machineBase > 0
+    ? Math.ceil(machineBase / outsrcFraction / 100) * 100  // 100円単位切り上げ
+    : Math.ceil(afterFreq / 100) * 100;                    // 機械未入力時は面積ベース
+
+  // 移動費は1案件につき固定
+  const distTotal = state.distAdd;
+  let total = machineBasedTotal + distTotal;
+
+  // 最低料金保証
+  let minPriceAdj = 0;
+  if (total < S.minPrice) { minPriceAdj = S.minPrice - total; total = S.minPrice; }
+
+  const beforeRound = total;
+  const roundAdj = 0; // 切上はmachineBasedTotal計算時に実施済
+
+  // 委託先支払 = 機械ベース (時間×時給 の合計がそのまま委託先へ)
+  const outsrcPay = machineBase;
+  const myProfit = total - outsrcPay;
+
+  // 機械ごとの委託支払 = 時間×時給 (そのまま)
+  machines.forEach(m => {
+    m.outsrc = m.base;
+  });
+
+  // 差分（単価直接計算のため地形補正差額は0）
+  // terrainDiff, grassDiff は上部で定義済み
+
+  // 面積ベース参照用 (表示のみ)
+  const machineExpected = machineBasedTotal; // 新ロジックでは machineBasedTotal が請求額
+  const compareDiff = 0;
+  const compareDiffPct = 0;
+
+  // ========= 表示 =========
+  document.getElementById('totalDisp').textContent = '¥' + total.toLocaleString();
+  document.getElementById('perM2Disp').textContent = (total/totalArea).toFixed(1) + ' 円/㎡';
+  if (discountAmount > 0) {
+    const pct = Math.round((1 - state.freqMult) * 100);
+    document.getElementById('discountBadge').innerHTML =
+      `<div class="discount-badge">🎁 ${state.freq} -${pct}% (−¥${Math.round(discountAmount).toLocaleString()})</div>`;
+  } else {
+    document.getElementById('discountBadge').innerHTML = '';
+  }
+
+  // 内訳
+  const fmt = (v) => {
+    if (v === 0) return `<span class="diff-zero">±¥0</span>`;
+    const sign = v > 0 ? '+' : '−';
+    const cls = v > 0 ? 'diff-plus' : 'diff-minus';
+    return `<span class="${cls}">${sign}¥${Math.abs(Math.round(v)).toLocaleString()}</span>`;
+  };
+
+  const blocks = [];
+
+  // ===== 機械ベース = 委託先支払 → 顧客請求額 =====
+  blocks.push(`<div class="breakdown-section">🔧 機械ベース（委託先への支払）</div>`);
+
+  if (machineBase === 0) {
+    blocks.push(`<div class="breakdown-row"><div class="label" style="color:#999;grid-column:1/4;text-align:center;">機械時間を入力すると請求額が自動計算されます</div></div>`);
+  } else {
+    machines.forEach(m => {
+      blocks.push(`
+        <div class="breakdown-row">
+          <div class="label">🛠 ${m.name}</div>
+          <div class="detail">${m.hours}h × ¥${m.rate.toLocaleString()}/h</div>
+          <div class="amount">¥${m.base.toLocaleString()}</div>
+        </div>
+      `);
+    });
+    blocks.push(`
+      <div class="breakdown-row" style="background:#fff8e1;border-left:3px solid #f0c040;">
+        <div class="label"><b>委託先 合計</b></div>
+        <div class="detail">↑ の合計 (委託先に渡す金額)</div>
+        <div class="amount"><b>¥${machineBase.toLocaleString()}</b></div>
+      </div>
+    `);
+    blocks.push(`
+      <div class="breakdown-row billable-highlight">
+        <div class="label"><b>💴 顧客請求額</b></div>
+        <div class="detail">委託合計 ÷ 委託率${S.outsrcRate}%</div>
+        <div class="amount billable-amount">¥${machineBasedTotal.toLocaleString()}</div>
+      </div>
+    `);
+  }
+
+  // 粗利表示（機械ベース新ロジック）
+  const realProfit = total - machineBase;
+  const profitColor = machineBase === 0 ? '#888' : realProfit > 0 ? '#1f7a3a' : realProfit < 0 ? '#a04040' : '#d4a843';
+  const profitLabel = machineBase === 0 ? '— 機械未入力'
+    : realProfit > 0 ? `✓ 粗利 +¥${Math.round(realProfit).toLocaleString()}`
+    : realProfit < 0 ? `❌ 赤字 −¥${Math.abs(Math.round(realProfit)).toLocaleString()}`
+    : '⚠ トントン';
+  if (machineBase > 0) {
+    blocks.push(`
+      <div class="breakdown-row" style="background:#f7faf7;border-left:3px solid ${profitColor};">
+        <div class="label" style="color:${profitColor};"><b>${profitLabel}</b></div>
+        <div class="detail" style="color:${profitColor};">請求 − 委託 = ¥${total.toLocaleString()} − ¥${machineBase.toLocaleString()}</div>
+        <div class="amount" style="color:${profitColor};">¥${Math.round(realProfit).toLocaleString()}</div>
+      </div>
+    `);
+  }
+
+  // 参考: 面積ベース
+  blocks.push(`<div class="breakdown-section">📐 参考: 面積ベース試算 (${totalArea.toLocaleString()}㎡ × ${S.baseRateM2}円/㎡)</div>`);
+  const terrainDetail = state.areaRows.filter(r => r.area > 0)
+    .map(r => `${r.terrain}${r.area}㎡`).join(' / ');
+  blocks.push(`
+    <div class="breakdown-row">
+      <div class="label">地形補正</div>
+      <div class="detail">${terrainDetail} → 平均×${avgTerrainMult.toFixed(2)}</div>
+      <div class="amount">${fmt(terrainDiff)}</div>
+    </div>
+    <div class="breakdown-row">
+      <div class="label">草状態補正</div>
+      <div class="detail">${state.grass} (×${state.grassMult})</div>
+      <div class="amount">${fmt(grassDiff)}</div>
+    </div>
+  `);
+  if (discountAmount > 0) {
+    const pct = Math.round((1 - state.freqMult) * 100);
+    blocks.push(`
+      <div class="breakdown-row discount">
+        <div class="label">🎁 契約割引</div>
+        <div class="detail">${state.freq} (-${pct}%)</div>
+        <div class="amount">−¥${Math.round(discountAmount).toLocaleString()}</div>
+      </div>
+    `);
+  }
+  if (distTotal > 0) {
+    blocks.push(`
+      <div class="breakdown-row">
+        <div class="label">移動費</div>
+        <div class="detail">${state.dist}</div>
+        <div class="amount">${fmt(distTotal)}</div>
+      </div>
+    `);
+  }
+  if (minPriceAdj > 0) blocks.push(`<div class="breakdown-row" style="background:#fffbe6;"><div class="label">🛡 最低料金保証</div><div class="detail">¥${S.minPrice.toLocaleString()} 下限まで引上</div><div class="amount">${fmt(minPriceAdj)}</div></div>`);
+  if (Math.abs(roundAdj) > 0) blocks.push(`<div class="breakdown-row"><div class="label">100円切上</div><div class="detail">調整</div><div class="amount">${fmt(roundAdj)}</div></div>`);
+
+  // 合計
+  blocks.push(`
+    <div class="breakdown-row total">
+      <div class="label">顧客請求額</div>
+      <div class="detail">合計 (税抜)</div>
+      <div class="amount">¥${total.toLocaleString()}</div>
+    </div>
+  `);
+
+  // 委託先支払 (機械ベース=時間×時給 をそのまま渡す)
+  if (machines.length > 0) {
+    blocks.push(`<div class="breakdown-section">🤝 委託先支払 内訳 (機械ベース=時間×時給 をそのまま渡す)</div>`);
+    machines.forEach(m => {
+      blocks.push(`
+        <div class="breakdown-row outsrc-item">
+          <div class="label">${m.name}</div>
+          <div class="detail">${m.hours}h × ¥${m.rate.toLocaleString()}</div>
+          <div class="amount">¥${m.outsrc.toLocaleString()}</div>
+        </div>
+      `);
+    });
+  } else {
+    blocks.push(`<div class="breakdown-section">🤝 委託先支払</div>`);
+  }
+  blocks.push(`
+    <div class="breakdown-row outsrc-total">
+      <div class="label">委託先支払 計</div>
+      <div class="detail">機械ベース合計</div>
+      <div class="amount">¥${outsrcPay.toLocaleString()}</div>
+    </div>
+    <div class="breakdown-row profit">
+      <div class="label">自分の粗利</div>
+      <div class="detail">顧客請求 − 委託先支払</div>
+      <div class="amount">¥${myProfit.toLocaleString()}</div>
+    </div>
+  `);
+
+  document.getElementById('breakdownArea').innerHTML = blocks.join('');
+
+  return {
+    totalArea, totalHours, workers, machines,
+    basePrice, areaBase, estBase, machineBase, compareDiff, compareDiffPct,
+    avgTerrainMult, terrainDiff, grassDiff,
+    discountAmount, distTotal, total, outsrcPay, myProfit, minPriceAdj
+  };
+}
+
+// ============================================================
+// 顧客見積書
+// ============================================================
+function openCustomerView() {
+  const r = calc();
+  if (!r) { alert('面積・地形を入力してください'); return; }
+
+  const siteName = document.getElementById('siteName').value || '対象現場';
+  const estDate = document.getElementById('estDate').value || new Date().toISOString().slice(0,10);
+
+  const fmt = (v) => {
+    if (v === 0) return `<span style="color:#888;">±¥0</span>`;
+    const sign = v > 0 ? '+' : '−';
+    return `${sign}¥${Math.abs(Math.round(v)).toLocaleString()}`;
+  };
+
+  // 地形内訳
+  const terrainList = state.areaRows.filter(r2 => r2.area > 0)
+    .map(r2 => `<div class="quote-row sub"><span>・${escapeHtml(r2.terrain)}</span><span>${r2.area.toLocaleString()} ㎡</span></div>`)
+    .join('');
+
+  // 作業費内訳 (面積ベース)
+  const S = getSettings();
+  const costRows = [];
+  costRows.push(`<div class="quote-row"><span>基準作業費 (${r.totalArea.toLocaleString()}㎡ × ¥${S.baseRateM2}/㎡)</span><span>¥${r.areaBase.toLocaleString()}</span></div>`);
+  costRows.push(`<div class="quote-row"><span>地形補正 (平均×${r.avgTerrainMult.toFixed(2)})</span><span>${fmt(r.terrainDiff)}</span></div>`);
+  costRows.push(`<div class="quote-row"><span>草状態補正 (${state.grass})</span><span>${fmt(r.grassDiff)}</span></div>`);
+  if (r.distTotal > 0) {
+    costRows.push(`<div class="quote-row"><span>移動費 (${state.dist})</span><span>+¥${r.distTotal.toLocaleString()}</span></div>`);
+  }
+
+  // 割引前小計
+  const subtotalBefore = r.areaBase + r.terrainDiff + r.grassDiff + r.distTotal;
+
+  let discountBlock = '';
+  if (r.discountAmount > 0) {
+    const pct = Math.round((1 - state.freqMult) * 100);
+    discountBlock = `
+      <div class="quote-subtotal">
+        <span>小計</span><span>¥${Math.round(subtotalBefore).toLocaleString()}</span>
+      </div>
+      <div class="quote-discount">
+        <span class="label">${state.freq}契約 割引 (-${pct}%)</span>
+        <span>−¥${Math.round(r.discountAmount).toLocaleString()}</span>
+      </div>
+    `;
+  }
+
+  // 移動時だけ作業人数
+  const workersRow = r.distTotal > 0
+    ? `<div class="quote-row"><span>作業人数</span><span>${r.workers} 人</span></div>`
+    : '';
+
+  const html = `
+    <div class="quote-doc">
+      <h3>草刈り作業 お見積書</h3>
+      <div class="quote-row"><span>見積日</span><span>${estDate}</span></div>
+      <div class="quote-row"><span>現場</span><span>${escapeHtml(siteName)}</span></div>
+      <div class="quote-row"><span>合計面積</span><span><b>${r.totalArea.toLocaleString()} ㎡</b></span></div>
+      ${terrainList}
+      ${workersRow}
+
+      <div class="quote-section-label">【作業費 内訳】</div>
+      ${costRows.join('')}
+      ${discountBlock}
+
+      <div class="quote-total">合計 ¥${r.total.toLocaleString()} (税抜)</div>
+      <div class="quote-unit">単価換算 約${(r.total/r.totalArea).toFixed(1)} 円/㎡</div>
+    </div>
+  `;
+  document.getElementById('customerDoc').innerHTML = html;
+  document.getElementById('customerModal').classList.add('show');
+}
+function closeCustomerView() {
+  document.getElementById('customerModal').classList.remove('show');
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+// ============================================================
+// 保存
+// ============================================================
+function saveEstimate() {
+  const r = calc();
+  if (!r) { alert('面積・地形を入力してください'); return; }
+  const name = document.getElementById('siteName').value || '(名称未設定)';
+
+  const hoursObj = { total: r.totalHours };
+  MACHINE_DEFS.forEach(def => {
+    const m = r.machines.find(x => x.key === def.key);
+    hoursObj[def.key] = m ? m.hours : 0;
+  });
+
+  const est = {
+    id: 'e' + Date.now() + Math.floor(Math.random()*1000),
+    createdAt: new Date().toISOString(),
+    date: document.getElementById('estDate').value || new Date().toISOString().slice(0,10),
+    site: name,
+    area: r.totalArea,
+    areaRows: state.areaRows.map(x => ({terrain:x.terrain, price:x.price||x.mult*11||11, mult:x.price/11||x.mult||1, area:x.area})),
+    avgTerrainMult: r.avgTerrainMult,
+    workers: r.workers,
+    hours: hoursObj,
+    grass: state.grass, grassMult: state.grassMult,
+    dist: state.dist, distAdd: state.distAdd,
+    freq: state.freq, freqMult: state.freqMult,
+    basePrice: r.basePrice,
+    customerPrice: r.total,
+    outsrcPay: r.outsrcPay,
+    outsrcByMachine: r.machines.map(m => ({key:m.key, name:m.name, hours:m.hours, outsrc:m.outsrc})),
+    myProfit: r.myProfit,
+    actual: null
+  };
+  const arr = getEstimates();
+  arr.push(est);
+  putEstimates(arr);
+  renderRecordList();
+  renderData();
+  alert('見積を保存しました: ' + name);
+}
+function clearForm() {
+  if (!confirm('フォームをリセットしますか?')) return;
+  document.getElementById('siteName').value = '';
+  if (document.getElementById('workers')) document.getElementById('workers').value = '1';
+  document.querySelectorAll('.mhour').forEach(i => i.value = '');
+  document.querySelectorAll('.marea').forEach(i => i.value = '');
+  state.areaRows = [];
+  addAreaRow('平地', 0);
+  calc();
+}
+
+// ============================================================
+// 一覧
+// ============================================================
+function renderRecordList() {
+  const arr = getEstimates().slice().reverse();
+  const list = document.getElementById('recordList');
+  if (arr.length === 0) { list.innerHTML = '<p style="text-align:center;color:#999;padding:30px;">データなし</p>'; return; }
+  // メンバー名のマップ
+  const members = (typeof getMembers === 'function') ? getMembers() : [];
+  const memberMap = Object.fromEntries(members.map(m => [m.id, m.name]));
+  list.innerHTML = arr.map(e => {
+    const hasActual = !!e.actual;
+    const hours = e.hours?.total || 0;
+    const terrainLabel = e.areaRows
+      ? e.areaRows.filter(r=>r.area>0).map(r => `${r.terrain}${r.area}㎡`).join(', ')
+      : (e.terrain || '');
+    // 担当者×機械×面積×委託金の詳細表示
+    let memberLine = '';
+    if (e.assignments && e.assignments.length > 0) {
+      const totalPay = e.assignments.reduce((s,a) => s + (a.payment||0), 0);
+      const detail = e.assignments.map(a => {
+        const name = memberMap[a.memberId] || '?';
+        const mname = MACHINE_LABELS[a.machineKey] || a.machineKey;
+        return `<div style="display:flex;justify-content:space-between;padding:3px 8px;background:#f7faf7;border-radius:6px;margin-top:3px;font-size:11px;">
+          <span><b>${escapeHtml(name)}</b> · ${mname} ${a.area||0}㎡ (${(a.hours||0).toFixed(1)}h)</span>
+          <span style="color:#2d5a3d;font-weight:700;">¥${Math.round(a.payment||0).toLocaleString()}</span>
+        </div>`;
+      }).join('');
+      memberLine = `<br>👥 担当 <button class="record-assign-btn" data-id="${e.id}" style="background:none;border:1px dashed #b09848;color:#8b6914;padding:1px 6px;border-radius:8px;font-size:10px;cursor:pointer;">編集</button>
+        ${detail}
+        <div style="display:flex;justify-content:space-between;padding:3px 8px;background:#fff3d0;border-radius:6px;margin-top:3px;font-size:11px;font-weight:700;">
+          <span>委託金 計</span>
+          <span>¥${Math.round(totalPay).toLocaleString()}</span>
+        </div>`;
+    } else {
+      memberLine = `<br>👥 <span style="color:#a04040;font-size:11px;">人員未割当</span> <button class="record-assign-btn" data-id="${e.id}" style="background:none;border:1px dashed #b09848;color:#8b6914;padding:2px 8px;border-radius:10px;font-size:10px;cursor:pointer;">＋割当</button>`;
+    }
+    const workDateLine = e.workDate ? `<br>📌 作業予定: ${e.workDate}` : '';
+    return `
+      <div class="record-item ${hasActual?'has-actual':''}" data-id="${e.id}">
+        <div class="title">
+          <span class="record-load-btn" data-id="${e.id}" style="flex:1;cursor:pointer;color:#2d5a3d;" title="見積タブに読み込む">${escapeHtml(e.site)}</span>
+          <span class="badge ${hasActual?'act':'est'}">${hasActual?'実績済':'見積のみ'}</span>
+          <button class="record-actual-btn" data-id="${e.id}" style="background:none;border:1px solid #2d5a3d;color:#2d5a3d;padding:2px 8px;border-radius:8px;font-size:11px;cursor:pointer;margin-right:4px;">📋 実績</button>
+          <button class="record-del-btn" data-id="${e.id}" data-site="${escapeHtml(e.site)}" title="削除">🗑 削除</button>
+        </div>
+        <div class="meta">
+          <span class="record-load-btn" data-id="${e.id}" style="cursor:pointer;" title="見積タブに読み込む">
+            📅 ${e.date} / ${e.area}㎡ / 予定${hours.toFixed(1)}h${workDateLine}<br>
+            💰 請求:¥${e.customerPrice.toLocaleString()} / 委託:¥${e.outsrcPay.toLocaleString()} / 粗利:¥${e.myProfit.toLocaleString()}<br>
+            🛠 ${terrainLabel} / ${e.grass} / ${e.freq}
+          </span>${memberLine}
+        </div>
+      </div>
+    `;
+  }).join('');
+  // イベント委譲で安全にバインド
+  list.querySelectorAll('.record-del-btn').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const id = btn.dataset.id;
+      const site = btn.dataset.site || '';
+      quickDelete(id, site);
+    });
+  });
+  list.querySelectorAll('.record-load-btn').forEach(el => {
+    el.addEventListener('click', () => loadEstimateToForm(el.dataset.id));
+  });
+  list.querySelectorAll('.record-actual-btn').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      openActualModal(btn.dataset.id);
+    });
+  });
+  list.querySelectorAll('.record-assign-btn').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      openAssignModal(btn.dataset.id);
+    });
+  });
+}
+
+// 一覧から直接削除
+function quickDelete(id, siteName) {
+  if (!id) return;
+  if (!confirm('「' + (siteName||'') + '」の見積を削除しますか?')) return;
+  const arr = getEstimates().filter(x => x.id !== id);
+  putEstimates(arr);
+  renderRecordList();
+  renderData();
+  if (typeof renderSchedule === 'function') renderSchedule();
+}
+
+// ============================================================
+// ============================================================
+// 一覧から見積タブに読み込む
+// ============================================================
+function loadEstimateToForm(id) {
+  const e = getEstimates().find(x => x.id === id);
+  if (!e) return;
+
+  // 現場名・日付
+  document.getElementById('siteName').value = e.site || '';
+  const dateEl = document.getElementById('estDate');
+  if (dateEl) dateEl.value = e.date || '';
+
+  // 機械時間を復元し、そこから面積も逆算して表示
+  MACHINE_DEFS.forEach(def => {
+    const h = e.hours?.[def.key] || 0;
+    const hourEl = document.querySelector(`.mhour[data-m=${def.key}]`);
+    const areaEl = document.querySelector(`.marea[data-m=${def.key}]`);
+    if (hourEl) hourEl.value = h > 0 ? h : '';
+    // 面積を逆算: hours × efficiency / avgTerrainMult
+    if (areaEl && h > 0) {
+      const S = getSettings();
+      const eff = S[def.effKey] || 100;
+      const avgMult = e.avgTerrainMult || 1.0;
+      const area = Math.round(h * eff / avgMult);
+      areaEl.value = area > 0 ? area : '';
+    } else if (areaEl) {
+      areaEl.value = '';
+    }
+  });
+
+  // 地形行を復元
+  state.areaRows = [];
+  if (e.areaRows && e.areaRows.length > 0) {
+    e.areaRows.forEach(r => addAreaRow(r.terrain, r.area || 0));
+  } else {
+    addAreaRow('平地', e.area || 0);
+  }
+
+  // 草の状態
+  if (e.grass) {
+    state.grass = e.grass;
+    state.grassMult = e.grassMult || 1.0;
+    document.querySelectorAll('#grassChips .chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.v === e.grass);
+    });
+  }
+
+  // 移動費エリア
+  if (e.dist) {
+    state.dist = e.dist;
+    state.distAdd = e.distAdd || 0;
+    document.querySelectorAll('#distChips .chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.v === e.dist);
+    });
+  }
+
+  // 契約形態
+  if (e.freq) {
+    state.freq = e.freq;
+    state.freqMult = e.freqMult || 1.0;
+    document.querySelectorAll('#freqChips .chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.v === e.freq);
+    });
+  }
+
+  // 再計算
+  renderAreaRows();
+  updateMachineAllocSummary();
+  calc();
+
+  // 見積タブに切り替え
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.tab-btn[data-tab="estimate"]').classList.add('active');
+  document.getElementById('tab-estimate').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ============================================================
+// 実績入力
+// ============================================================
+function openActualModal(id) {
+  const arr = getEstimates();
+  const e = arr.find(x => x.id === id);
+  if (!e) return;
+  state.editingId = id;
+
+  document.getElementById('modalTitle').textContent = e.actual ? '📝 実績編集' : '📝 実績入力';
+  const terrainLabel = e.areaRows
+    ? e.areaRows.filter(r=>r.area>0).map(r => `${r.terrain}${r.area}㎡`).join(' / ')
+    : (e.terrain || '');
+  document.getElementById('modalInfo').innerHTML = `
+    <strong>${escapeHtml(e.site)}</strong><br>
+    見積日: ${e.date} / 合計${e.area}㎡<br>
+    地形: ${terrainLabel}<br>
+    予定: 仮払${e.hours.karibaraiki||0}h / 方面${e.hours.homen||0}h / ハンマー${e.hours.hammer||0}h<br>
+    請求: ¥${e.customerPrice.toLocaleString()} / 粗利: ¥${e.myProfit.toLocaleString()}
+  `;
+  document.getElementById('actualDate').value = e.actual?.date || new Date().toISOString().slice(0,10);
+  document.getElementById('actualK').value = e.actual?.hours?.karibaraiki ?? '';
+  document.getElementById('actualH').value = e.actual?.hours?.homen ?? '';
+  document.getElementById('actualM').value = e.actual?.hours?.hammer ?? '';
+  document.getElementById('actualPrice').value = e.actual?.price ?? e.customerPrice;
+  document.getElementById('actualOutsrc').value = e.actual?.outsrc ?? e.outsrcPay;
+  document.getElementById('actualMemo').value = e.actual?.memo ?? '';
+
+  document.getElementById('actualModal').classList.add('show');
+}
+function closeActualModal() {
+  document.getElementById('actualModal').classList.remove('show');
+  state.editingId = null;
+}
+function saveActual() {
+  const id = state.editingId;
+  if (!id) return;
+  const arr = getEstimates();
+  const idx = arr.findIndex(x => x.id === id);
+  if (idx < 0) return;
+
+  const hK = parseFloat(document.getElementById('actualK').value) || 0;
+  const hH = parseFloat(document.getElementById('actualH').value) || 0;
+  const hM = parseFloat(document.getElementById('actualM').value) || 0;
+  const totalHours = hK + hH + hM;
+  if (totalHours === 0) { alert('機械時間を1つ以上入力してください'); return; }
+
+  arr[idx].actual = {
+    date: document.getElementById('actualDate').value,
+    hours: { karibaraiki: hK, homen: hH, hammer: hM, total: totalHours },
+    price: parseFloat(document.getElementById('actualPrice').value) || arr[idx].customerPrice,
+    outsrc: parseFloat(document.getElementById('actualOutsrc').value) || 0,
+    memo: document.getElementById('actualMemo').value
+  };
+  putEstimates(arr);
+  closeActualModal();
+  renderRecordList();
+  alert('実績を保存しました');
+}
+function deleteEstimate() {
+  const id = state.editingId;
+  if (!id) return;
+  if (!confirm('この見積を削除しますか?')) return;
+  const arr = getEstimates().filter(x => x.id !== id);
+  putEstimates(arr);
+  closeActualModal();
+  renderRecordList();
+}
+
+// ============================================================
+// データ集計
+// ============================================================
+function renderData() {
+  const arr = getEstimates();
+  const withActual = arr.filter(e => e.actual);
+
+  // 機械別効率
+  const byMachine = { karibaraiki:{area:0,hours:0,count:0}, homen:{area:0,hours:0,count:0}, hammer:{area:0,hours:0,count:0} };
+  withActual.forEach(e => {
+    const totalH = e.actual.hours.total;
+    if (totalH === 0) return;
+    ['karibaraiki','homen','hammer'].forEach(m => {
+      const h = e.actual.hours[m] || 0;
+      if (h > 0) {
+        byMachine[m].area += e.area * (h / totalH);
+        byMachine[m].hours += h;
+        byMachine[m].count++;
+      }
+    });
+  });
+  const nameMap = {karibaraiki:'仮払機', homen:'方面草刈り機', hammer:'ハンマーモア'};
+  const ms = document.getElementById('machineStats');
+  const entries = Object.entries(byMachine).filter(([_,d]) => d.hours > 0);
+  if (entries.length === 0) {
+    ms.innerHTML = '<div class="stat-box"><div class="num">—</div><div class="lbl">実績データなし</div></div>';
+  } else {
+    ms.innerHTML = entries.map(([m,d]) => `
+      <div class="stat-box">
+        <div class="num">${Math.round(d.area/d.hours)}</div>
+        <div class="lbl">${nameMap[m]}<br>㎡/h (${d.count}件)</div>
+      </div>
+    `).join('');
+  }
+
+  // 収支
+  const totalSales = withActual.reduce((s,e) => s + (e.actual.price||0), 0);
+  const totalOutsrc = withActual.reduce((s,e) => s + (e.actual.outsrc||0), 0);
+  const totalProfit = totalSales - totalOutsrc;
+  document.getElementById('profitStats').innerHTML = `
+    <div class="stat-box"><div class="num">¥${totalSales.toLocaleString()}</div><div class="lbl">総売上</div></div>
+    <div class="stat-box"><div class="num">¥${totalProfit.toLocaleString()}</div><div class="lbl">総粗利</div></div>
+    <div class="stat-box"><div class="num">${withActual.length}</div><div class="lbl">完了件数</div></div>
+  `;
+}
+
+// ============================================================
+// データ管理
+// ============================================================
+function exportCSV() {
+  const arr = getEstimates();
+  if (arr.length === 0) { alert('データがありません'); return; }
+  const headers = ['id','date','site','面積合計','地形内訳','平均補正','草状態','契約形態','予定h_仮払','予定h_方面','予定h_ハンマー','請求','委託','粗利','実h_仮払','実h_方面','実h_ハンマー','実請求','実委託','メモ'];
+  const rows = arr.map(e => {
+    const terrainLabel = e.areaRows
+      ? e.areaRows.filter(r=>r.area>0).map(r => `${r.terrain}:${r.area}㎡`).join(' / ')
+      : (e.terrain || '');
+    return [
+      e.id, e.date, e.site, e.area, terrainLabel, e.avgTerrainMult?.toFixed(2) ?? '', e.grass, e.freq,
+      e.hours?.karibaraiki ?? 0, e.hours?.homen ?? 0, e.hours?.hammer ?? 0,
+      e.customerPrice, e.outsrcPay, e.myProfit,
+      e.actual?.hours?.karibaraiki ?? '',
+      e.actual?.hours?.homen ?? '',
+      e.actual?.hours?.hammer ?? '',
+      e.actual?.price ?? '', e.actual?.outsrc ?? '',
+      e.actual?.memo ?? ''
+    ];
+  });
+  const csv = [headers.join(',')].concat(
+    rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(','))
+  ).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `草刈り見積_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function backupJSON() {
+  const data = { estimates: getEstimates(), settings: getSettings(), exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `草刈りバックアップ_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function restoreJSON(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (d.estimates) putEstimates(d.estimates);
+      if (d.settings) putSettings(d.settings);
+      alert('復元しました');
+      renderRecordList();
+      renderData();
+    } catch(err) { alert('復元失敗: ' + err.message); }
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+function clearAllData() {
+  if (!confirm('全データを削除します。よろしいですか?')) return;
+  if (!confirm('本当によろしいですか?復元できません。')) return;
+  localStorage.removeItem('mowingEstimatesV3');
+  localStorage.removeItem('mowingEstimates');
+  renderRecordList();
+  renderData();
+  alert('削除しました');
+}
+
+// ============================================================
+// 設定
+// ============================================================
+function loadSettingsForm() {
+  const s = getSettings();
+  document.getElementById('set-rk').value = s.rateKaribaraiki;
+  document.getElementById('set-rh').value = s.rateHomen;
+  document.getElementById('set-rm').value = s.rateHammer;
+  document.getElementById('set-ek').value = s.effKaribaraiki;
+  document.getElementById('set-eh').value = s.effHomen;
+  document.getElementById('set-em').value = s.effHammer;
+  document.getElementById('set-m2rate').value = s.baseRateM2;
+  document.getElementById('set-outsrc').value = s.outsrcRate;
+  document.getElementById('set-min').value = s.minPrice;
+}
+function saveSettings() {
+  const s = {
+    rateKaribaraiki: parseInt(document.getElementById('set-rk').value) || DEFAULT_SETTINGS.rateKaribaraiki,
+    rateHomen: parseInt(document.getElementById('set-rh').value) || DEFAULT_SETTINGS.rateHomen,
+    rateHammer: parseInt(document.getElementById('set-rm').value) || DEFAULT_SETTINGS.rateHammer,
+    effKaribaraiki: parseInt(document.getElementById('set-ek').value) || DEFAULT_SETTINGS.effKaribaraiki,
+    effHomen: parseInt(document.getElementById('set-eh').value) || DEFAULT_SETTINGS.effHomen,
+    effHammer: parseInt(document.getElementById('set-em').value) || DEFAULT_SETTINGS.effHammer,
+    baseRateM2: parseInt(document.getElementById('set-m2rate').value) || DEFAULT_SETTINGS.baseRateM2,
+    outsrcRate: parseInt(document.getElementById('set-outsrc').value) || DEFAULT_SETTINGS.outsrcRate,
+    minPrice: parseInt(document.getElementById('set-min').value) || DEFAULT_SETTINGS.minPrice
+  };
+  putSettings(s);
+  updateRateLabels();
+  calc();
+  alert('設定を保存しました');
+}
+function resetSettings() {
+  if (!confirm('設定を初期値に戻しますか?')) return;
+  putSettings(DEFAULT_SETTINGS);
+  loadSettingsForm();
+  updateRateLabels();
+  calc();
+}
+function updateRateLabels() {
+  const s = getSettings();
+  document.getElementById('r-karibaraiki').textContent = `¥${s.rateKaribaraiki.toLocaleString()}/h`;
+  document.getElementById('r-homen').textContent = `¥${s.rateHomen.toLocaleString()}/h`;
+  document.getElementById('r-hammer').textContent = `¥${s.rateHammer.toLocaleString()}/h`;
+}
+
+// ============================================================
+// 自動更新チェック / 強制再読込
+// ============================================================
+const BUILD_STAMP = '2026-05-02 11:00';
+
+// 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
+function forceReload() {
+  const url = new URL(window.location.href);
+  url.searchParams.set('t', Date.now());
+  // cacheをすべて飛ばして再取得
+  window.location.replace(url.toString());
+}
+
+// 更新チェック: 同じURLを no-cache で取得して最新BUILD_STAMPと比較
+async function checkForUpdate() {
+  try {
+    const url = window.location.pathname + '?check=' + Date.now();
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) return;
+    const html = await res.text();
+    const m = html.match(/const BUILD_STAMP = '([^']+)'/);
+    if (m && m[1] !== BUILD_STAMP) {
+      // 新しいバージョンあり
+      document.getElementById('updateBanner').classList.add('show');
+      console.log(`[草刈り見積] 更新あり: 現在=${BUILD_STAMP} / 最新=${m[1]}`);
+    }
+  } catch (e) {
+    // fetch失敗時は静かに無視(ローカルfile://では動作しない)
+  }
+}
+
+// タブがアクティブになった時に更新チェック
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) checkForUpdate();
+});
+
+// ============================================================
+// 初期化
+// ============================================================
+document.getElementById('buildTime').textContent = BUILD_STAMP;
+document.getElementById('estDate').value = new Date().toISOString().slice(0,10);
+updateRateLabels();
+addAreaRow('平地', 0);
+calc();
+renderRecordList();
+renderData();
+
+// 起動時とその後60秒ごとに更新チェック
+checkForUpdate();
+setInterval(checkForUpdate, 60000);
+
+// ============================================================
+// 👥 メンバー管理
+// ============================================================
+const MACHINE_LABELS = { karibaraiki: '仮払機', homen: '方面草刈機', hammer: 'ハンマーモア' };
+
+function getMembers() {
+  const m = JSON.parse(localStorage.getItem('mowingMembers') || 'null');
+  if (m) return m;
+  return [{ id: 'm1', name: '自分', skills: ['karibaraiki','homen','hammer'], status: 'active' }];
+}
+function putMembers(arr) { localStorage.setItem('mowingMembers', JSON.stringify(arr)); }
+
+function renderMembers() {
+  const members = getMembers();
+  const c = document.getElementById('memberList');
+  if (!members.length) { c.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">メンバーを追加してください</p>'; }
+  else {
+    c.innerHTML = members.map(m => {
+      const skillTags = m.skills.map(s => `<span style="display:inline-block;padding:2px 8px;background:#e6efe6;color:#2d5a3d;border-radius:10px;font-size:11px;font-weight:600;margin-right:4px;">${MACHINE_LABELS[s]||s}</span>`).join('');
+      const statusBadge = m.status === 'inactive' ? '<span style="background:#eee;color:#888;padding:2px 8px;border-radius:10px;font-size:10px;">休止中</span>' : '';
+      const initial = (m.name || '?').slice(0,1);
+      return `
+        <div style="background:#f7faf7;border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;gap:10px;align-items:center;border:1px solid #d7e0d7;">
+          <div style="width:36px;height:36px;border-radius:50%;background:#2d5a3d;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">${escapeHtml(initial)}</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;">${escapeHtml(m.name)} ${statusBadge}</div>
+            <div>${skillTags || '<span style="color:#999;font-size:11px;">使用機械未設定</span>'}</div>
+          </div>
+          <button class="action-btn secondary" style="width:auto;padding:6px 10px;font-size:12px;margin:0;" onclick="openMemberModal('${m.id}')">編集</button>
+        </div>`;
+    }).join('');
+  }
+  // マトリクス
+  const matrix = document.getElementById('memberMatrix');
+  const machines = ['karibaraiki','homen','hammer'];
+  const cells = machines.map(mk => {
+    const possible = members.filter(m => m.status === 'active' && m.skills.includes(mk));
+    return `<div style="background:#fff;padding:10px;border:1px solid #d7e0d7;border-radius:8px;">
+      <div style="font-weight:700;color:#2d5a3d;font-size:13px;margin-bottom:4px;">🛠 ${MACHINE_LABELS[mk]}</div>
+      <div style="font-size:12px;color:#555;">${possible.length>0 ? possible.map(p=>p.name).join('、') : '<span style="color:#a04040;">対応者なし</span>'}</div>
+    </div>`;
+  }).join('');
+  matrix.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;">' + cells + '</div>';
+}
+
+function openMemberModal(id) {
+  if (id) {
+    const m = getMembers().find(x => x.id === id);
+    if (!m) return;
+    document.getElementById('memberModalTitle').textContent = '👤 メンバーを編集';
+    document.getElementById('memberId').value = m.id;
+    document.getElementById('memberName').value = m.name;
+    document.getElementById('memberStatus').value = m.status;
+    document.querySelectorAll('#memberSkills .chip').forEach(c => {
+      c.classList.toggle('active', m.skills.includes(c.dataset.skill));
+    });
+    document.getElementById('memberDeleteBtn').style.display = 'block';
+  } else {
+    document.getElementById('memberModalTitle').textContent = '👤 メンバーを追加';
+    document.getElementById('memberId').value = '';
+    document.getElementById('memberName').value = '';
+    document.getElementById('memberStatus').value = 'active';
+    document.querySelectorAll('#memberSkills .chip').forEach(c => c.classList.remove('active'));
+    document.getElementById('memberDeleteBtn').style.display = 'none';
+  }
+  document.getElementById('memberModal').classList.add('show');
+}
+document.querySelectorAll('#memberSkills .chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('active'));
+});
+function closeMemberModal() { document.getElementById('memberModal').classList.remove('show'); }
+function saveMember() {
+  const name = document.getElementById('memberName').value.trim();
+  if (!name) { alert('名前を入力してください'); return; }
+  const skills = [...document.querySelectorAll('#memberSkills .chip.active')].map(c => c.dataset.skill);
+  const status = document.getElementById('memberStatus').value;
+  const id = document.getElementById('memberId').value;
+  const arr = getMembers();
+  if (id) {
+    const idx = arr.findIndex(x => x.id === id);
+    if (idx >= 0) arr[idx] = { ...arr[idx], name, skills, status };
+  } else {
+    arr.push({ id: 'm' + Date.now(), name, skills, status });
+  }
+  putMembers(arr);
+  closeMemberModal();
+  renderMembers();
+}
+function deleteMember() {
+  const id = document.getElementById('memberId').value;
+  if (!id || !confirm('このメンバーを削除しますか？')) return;
+  putMembers(getMembers().filter(x => x.id !== id));
+  closeMemberModal();
+  renderMembers();
+}
+
+// ============================================================
+// 📅 スケジュール生成（同エリア優先・移動最小）
+// ============================================================
+function renderSchedule() {
+  const arr = getEstimates().filter(e => e.workDate);
+  if (arr.length === 0) {
+    document.getElementById('scheduleArea').innerHTML = '<p style="color:#999;text-align:center;padding:30px;">作業予定日のある案件がありません<br><small>見積保存時に「作業予定日」を入れてください</small></p>';
+    return;
+  }
+  // メンバー名マップ
+  const members = getMembers();
+  const memberMap = Object.fromEntries(members.map(m => [m.id, m.name]));
+  // 日付ごとにグループ化、各日付内でエリア順
+  const byDate = {};
+  arr.forEach(e => {
+    if (!byDate[e.workDate]) byDate[e.workDate] = [];
+    byDate[e.workDate].push(e);
+  });
+  Object.keys(byDate).forEach(d => byDate[d].sort((a,b) => (a.siteAreaText||'').localeCompare(b.siteAreaText||'')));
+  const dates = Object.keys(byDate).sort();
+  const container = document.getElementById('scheduleArea');
+  container.innerHTML = dates.map(d => {
+    const jobs = byDate[d];
+    const areas = [...new Set(jobs.map(j => j.siteAreaText).filter(Boolean))].join(' / ') || '(エリア未設定)';
+    const totalH = jobs.reduce((s,j) => s + (j.hours?.total || 0), 0);
+    const totalP = jobs.reduce((s,j) => s + (j.customerPrice||0), 0);
+    return `
+      <div style="background:#fff;border:1px solid #d7e0d7;border-radius:10px;padding:14px;margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;border-bottom:1px solid #e6efe6;padding-bottom:6px;flex-wrap:wrap;gap:6px;">
+          <div style="font-weight:700;color:#2d5a3d;font-size:15px;">📅 ${d} <span style="background:#e6f0fb;color:#2c5d8c;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;margin-left:6px;">${jobs.length}件</span></div>
+          <div style="font-size:11px;color:#555;">📍 ${escapeHtml(areas)} ・ ${totalH.toFixed(1)}h ・ ¥${totalP.toLocaleString()}</div>
+        </div>
+        ${jobs.map(j => {
+          const machineList = (j.machines||[]).filter(m => m.hours > 0).map(m => `${m.name}${m.hours.toFixed(1)}h`).join(' / ');
+          const assignedNames = (j.assignedMembers || []).map(id => memberMap[id]).filter(Boolean);
+          const memberLine = assignedNames.length > 0
+            ? `<div style="margin-top:4px;">👥 ${assignedNames.map(n => `<span style="display:inline-block;padding:1px 7px;background:#e6efe6;color:#2d5a3d;border-radius:8px;font-size:10px;font-weight:600;margin-right:3px;">${escapeHtml(n)}</span>`).join('')}</div>`
+            : `<div style="margin-top:4px;color:#a04040;font-size:11px;">👥 人員未割当 <button class="record-assign-btn" data-id="${j.id}" style="background:none;border:1px dashed #b09848;color:#8b6914;padding:1px 6px;border-radius:8px;font-size:10px;cursor:pointer;">＋割当</button></div>`;
+          const jArea = j.area || j.totalArea || 0;
+          return `<div style="background:#f7faf7;padding:8px 10px;border-radius:6px;margin-top:5px;font-size:12px;">
+            <div><b>${escapeHtml(j.site)}</b> · ${jArea}㎡ · ${(j.hours?.total || 0).toFixed(1)}h · ¥${j.customerPrice.toLocaleString()}</div>
+            <div style="color:#555;font-size:11px;margin-top:2px;">🛠 ${machineList || '機械未割当'}</div>
+            ${memberLine}
+          </div>`;
+        }).join('')}
+      </div>`;
+  }).join('');
+  // スケジュール内の割当ボタンも委譲バインド
+  container.querySelectorAll('.record-assign-btn').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      openAssignModal(btn.dataset.id);
+    });
+  });
+}
+
+// ============================================================
+// 既存 saveEstimate を拡張: workDate, siteAreaText を保存
+// ============================================================
+const _origSaveEst = window.saveEstimate;
+window.saveEstimate = function() {
+  const r = calc();
+  if (!r) { alert('面積・地形を入力してください'); return; }
+  const name = document.getElementById('siteName').value || '(名称未設定)';
+  const siteAreaText = document.getElementById('siteArea')?.value || '';
+  const workDate = document.getElementById('workDate')?.value || '';
+  const hoursObj = { total: r.totalHours };
+  const machineAreas = {};
+  MACHINE_DEFS.forEach(def => {
+    const m = r.machines.find(x => x.key === def.key);
+    hoursObj[def.key] = m ? m.hours : 0;
+    // 入力した担当㎡を保存
+    const areaEl = document.querySelector('.marea[data-m=' + def.key + ']');
+    machineAreas[def.key] = parseFloat(areaEl?.value) || 0;
+  });
+  const est = {
+    id: 'e' + Date.now() + Math.floor(Math.random()*1000),
+    createdAt: new Date().toISOString(),
+    date: document.getElementById('estDate').value || new Date().toISOString().slice(0,10),
+    site: name,
+    siteAreaText, workDate,
+    area: r.totalArea,
+    areaRows: state.areaRows.map(x => ({terrain:x.terrain, price:x.price||x.mult*11||11, mult:x.price/11||x.mult||1, area:x.area})),
+    avgTerrainMult: r.avgTerrainMult,
+    workers: r.workers,
+    hours: hoursObj,
+    machineAreas,
+    grass: state.grass, grassMult: state.grassMult,
+    dist: state.dist, distAdd: state.distAdd,
+    freq: state.freq, freqMult: state.freqMult,
+    basePrice: r.basePrice,
+    customerPrice: r.total,
+    outsrcPay: r.outsrcPay,
+    outsrcByMachine: r.machines.map(m => ({key:m.key, name:m.name, hours:m.hours, outsrc:m.outsrc})),
+    machines: r.machines.map(m => ({key:m.key, name:m.name, hours:m.hours, base:m.base})),
+    myProfit: r.myProfit,
+    assignments: [],
+    assignedMembers: [],
+    actual: null
+  };
+  const arr = getEstimates();
+  arr.push(est);
+  putEstimates(arr);
+  renderRecordList();
+  renderData();
+  renderSchedule();
+  alert('見積を保存しました: ' + name + (workDate ? `\n作業予定日: ${workDate}` : ''));
+};
+
+// タブ切替時のレンダリング追加
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.tab === 'schedule') renderSchedule();
+    if (btn.dataset.tab === 'members') renderMembers();
+  });
+});
+
+// ============================================================
+// 👥 案件への人員割当（メンバー × 機械 × 面積 × 委託金）
+// ============================================================
+let assignState = { estId: null, rows: [] };
+
+function openAssignModal(estId) {
+  const arr = getEstimates();
+  const e = arr.find(x => x.id === estId);
+  if (!e) return;
+  assignState.estId = estId;
+  // 既存の割当を読み込み（旧フォーマット対応）
+  if (e.assignments && Array.isArray(e.assignments)) {
+    assignState.rows = JSON.parse(JSON.stringify(e.assignments));
+  } else if (e.assignedMembers && e.assignedMembers.length > 0) {
+    // 旧フォーマット: メンバーIDの配列のみ → 機械を推定して初期化
+    const members = getMembers();
+    assignState.rows = e.assignedMembers.map(mid => {
+      const m = members.find(x => x.id === mid);
+      const skill = m?.skills?.[0] || 'karibaraiki';
+      return { memberId: mid, machineKey: skill, area: 0 };
+    });
+  } else {
+    assignState.rows = [];
+  }
+  document.getElementById('assignEstId').value = estId;
+  const machineList = (e.machines||[]).filter(m => m.hours > 0).map(m => `${m.name} ${m.hours.toFixed(1)}h (${(e.machineAreas?.[m.key])?.toFixed(0) || '?'}㎡)`).join(' / ') || '機械情報なし';
+  const totalArea = e.area || e.totalArea || 0;
+  document.getElementById('assignInfo').innerHTML = `
+    <strong>${escapeHtml(e.site)}</strong><br>
+    📅 ${e.date} / 合計 ${totalArea}㎡ / ${(e.hours?.total||0).toFixed(1)}h<br>
+    🛠 想定機械: ${machineList}
+  `;
+  renderAssignRows();
+  document.getElementById('assignModal').classList.add('show');
+}
+
+function closeAssignModal() {
+  document.getElementById('assignModal').classList.remove('show');
+}
+
+function addAssignRow(memberId = null) {
+  const members = getMembers().filter(m => m.status === 'active');
+  if (members.length === 0) {
+    alert('先に「人員」タブでメンバーを追加してください');
+    return;
+  }
+  // memberId指定→その人 / なければ最後の行と同じ人 / なければ最初の人
+  let selectedMember;
+  if (memberId) {
+    selectedMember = members.find(m => m.id === memberId) || members[0];
+  } else if (assignState.rows.length > 0) {
+    const lastId = assignState.rows[assignState.rows.length - 1].memberId;
+    selectedMember = members.find(m => m.id === lastId) || members[0];
+  } else {
+    selectedMember = members[0];
+  }
+  // この人がまだ使っていない機械を自動選択
+  const allMachines = ['karibaraiki', 'homen', 'hammer'];
+  const usedMachines = assignState.rows
+    .filter(r => r.memberId === selectedMember.id)
+    .map(r => r.machineKey);
+  const nextMachine = allMachines.find(m => !usedMachines.includes(m))
+    || allMachines[0];
+  assignState.rows.push({
+    memberId: selectedMember.id,
+    machineKey: nextMachine,
+    area: 0
+  });
+  renderAssignRows();
+}
+function removeAssignRow(idx) {
+  assignState.rows.splice(idx, 1);
+  renderAssignRows();
+}
+function updateAssignRow(idx, field, value) {
+  if (!assignState.rows[idx]) return;
+  if (field === 'area') value = parseFloat(value) || 0;
+  assignState.rows[idx][field] = value;
+  renderAssignRows();
+}
+
+function calcAssignment(row, est) {
+  const S = getSettings();
+  const MACHINE_DEF = {
+    karibaraiki: { effKey:'effKaribaraiki', rateKey:'rateKaribaraiki' },
+    homen:       { effKey:'effHomen',       rateKey:'rateHomen' },
+    hammer:      { effKey:'effHammer',      rateKey:'rateHammer' }
+  };
+  const def = MACHINE_DEF[row.machineKey];
+  if (!def) return { hours:0, payment:0 };
+  const eff = S[def.effKey] || 100;
+  const rate = S[def.rateKey] || 2000;
+  const mult = est?.avgTerrainMult || 1.0;
+  const grassMult = est?.grassMult || 1.0;
+  const correction = mult * grassMult;
+  const hours = (row.area * correction) / eff;
+  const payment = hours * rate;
+  return { hours, payment };
+}
+
+function renderAssignRows() {
+  const c = document.getElementById('assignRows');
+  const members = getMembers();
+  const est = getEstimates().find(x => x.id === assignState.estId);
+  const totalArea = est?.area || est?.totalArea || 0;
+
+  if (assignState.rows.length === 0) {
+    c.innerHTML = '<p style="color:#999;text-align:center;padding:14px;font-size:13px;">担当を追加してください</p>';
+  } else {
+    c.innerHTML = assignState.rows.map((row, i) => {
+      const member = members.find(m => m.id === row.memberId);
+      const memberOpts = members.map(m =>
+        `<option value="${m.id}" ${m.id===row.memberId?'selected':''}>${escapeHtml(m.name)}${m.status==='inactive'?'(休止)':''}</option>`
+      ).join('');
+      const machineOpts = ['karibaraiki','homen','hammer'].map(mk => {
+        const can = member?.skills?.includes(mk);
+        return `<option value="${mk}" ${mk===row.machineKey?'selected':''}>${MACHINE_LABELS[mk]}${can?'':' ⚠'}</option>`;
+      }).join('');
+      const calc = calcAssignment(row, est);
+      return `
+        <div style="background:#fff;border:1px solid #d7e0d7;border-radius:8px;padding:10px;margin-bottom:6px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:6px;margin-bottom:6px;">
+            <select onchange="updateAssignRow(${i},'memberId',this.value)" style="margin-bottom:0;font-size:13px;padding:8px;">
+              ${memberOpts}
+            </select>
+            <select onchange="updateAssignRow(${i},'machineKey',this.value)" style="margin-bottom:0;font-size:13px;padding:8px;">
+              ${machineOpts}
+            </select>
+            <button title="同じ担当者で別の機械を追加" style="width:auto;padding:6px 8px;font-size:16px;margin:0;background:#e8f5e9;border:1px solid #81c784;border-radius:6px;cursor:pointer;color:#2d5a3d;" onclick="addAssignRow('${row.memberId}')">＋</button>
+            <button class="action-btn danger" style="width:auto;padding:6px 10px;font-size:12px;margin:0;" onclick="removeAssignRow(${i})">×</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto auto;gap:6px;align-items:center;">
+            <input type="number" placeholder="担当面積㎡" value="${row.area||''}" oninput="updateAssignRow(${i},'area',this.value)" style="margin-bottom:0;font-size:13px;padding:8px;">
+            <span style="font-size:12px;color:#666;white-space:nowrap;">→ ${calc.hours.toFixed(2)}h</span>
+            <span style="font-size:13px;color:#2d5a3d;font-weight:700;white-space:nowrap;">¥${Math.round(calc.payment).toLocaleString()}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // サマリー
+  const totalAssignArea = assignState.rows.reduce((s,r) => s + (r.area||0), 0);
+  const totalPayment = assignState.rows.reduce((s,r) => s + calcAssignment(r, est).payment, 0);
+  const totalHours = assignState.rows.reduce((s,r) => s + calcAssignment(r, est).hours, 0);
+  const remainArea = totalArea - totalAssignArea;
+  const customerPrice = est?.customerPrice || 0;
+  const profit = customerPrice - totalPayment;
+  document.getElementById('assignSummary').innerHTML = `
+    <b>📊 サマリー</b><br>
+    ・割当面積: <b>${totalAssignArea.toLocaleString()}㎡</b> / ${totalArea.toLocaleString()}㎡ ${remainArea > 0 ? `<span style="color:#a04040;">(残${remainArea}㎡)</span>` : remainArea < 0 ? `<span style="color:#a04040;">(超過${Math.abs(remainArea)}㎡)</span>` : '<span style="color:#1f7a3a;">✓</span>'}<br>
+    ・委託金 合計: <b>¥${Math.round(totalPayment).toLocaleString()}</b> (${totalHours.toFixed(2)}h)<br>
+    ・顧客請求: ¥${customerPrice.toLocaleString()}<br>
+    ・自分の粗利: <b style="color:${profit>=0?'#1f7a3a':'#a04040'};">¥${Math.round(profit).toLocaleString()}</b>
+  `;
+  // 警告
+  const warns = [];
+  assignState.rows.forEach((r, i) => {
+    const member = members.find(m => m.id === r.memberId);
+    if (member && !member.skills.includes(r.machineKey)) {
+      warns.push(`${i+1}行目: ${member.name}は${MACHINE_LABELS[r.machineKey]}のスキル未登録`);
+    }
+  });
+  const warnEl = document.getElementById('assignWarning');
+  if (warns.length > 0) { warnEl.style.display='block'; warnEl.innerHTML = '⚠️ ' + warns.join('<br>'); }
+  else { warnEl.style.display='none'; }
+}
+
+function saveAssignment() {
+  const estId = assignState.estId;
+  if (!estId) return;
+  const arr = getEstimates();
+  const idx = arr.findIndex(x => x.id === estId);
+  if (idx < 0) return;
+  // 計算値を保存
+  arr[idx].assignments = assignState.rows.map(r => {
+    const calc = calcAssignment(r, arr[idx]);
+    return { memberId: r.memberId, machineKey: r.machineKey, area: r.area, hours: calc.hours, payment: calc.payment };
+  });
+  // 旧フォーマットも互換のため保存
+  arr[idx].assignedMembers = [...new Set(assignState.rows.map(r => r.memberId))];
+  putEstimates(arr);
+  closeAssignModal();
+  renderRecordList();
+  if (typeof renderSchedule === 'function') renderSchedule();
+  if (typeof renderData === 'function') renderData();
+}
+
+function autoAssignMembers() {
+  const arr = getEstimates();
+  const e = arr.find(x => x.id === assignState.estId);
+  if (!e) return;
+  const members = getMembers().filter(m => m.status === 'active');
+  // 機械ごとの担当面積を取得
+  const newRows = [];
+  (e.machines||[]).filter(m => m.hours > 0).forEach(mc => {
+    const skilled = members.filter(m => m.skills.includes(mc.key));
+    if (skilled.length === 0) return;
+    // 機械の担当面積（machineAreasから取得、なければ総面積を時間比で按分）
+    let area = e.machineAreas?.[mc.key];
+    if (!area) {
+      const totalH = e.hours?.total || 1;
+      area = (e.area || 0) * (mc.hours / totalH);
+    }
+    // 単純: 最初の対応者に全面積を割当
+    newRows.push({ memberId: skilled[0].id, machineKey: mc.key, area: Math.round(area) });
+  });
+  assignState.rows = newRows;
+  renderAssignRows();
+}
+
+// ============================================================
+// 💴 メンバー別 委託金支払いサマリー
+// ============================================================
+function renderMemberPaymentSummary() {
+  let container = document.getElementById('memberPaymentSummary');
+  if (!container) {
+    const dataTab = document.getElementById('tab-data');
+    if (!dataTab) return;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <h2>💴 メンバー別 委託金支払い</h2>
+      <div id="memberPaymentSummary"></div>
+    `;
+    dataTab.insertBefore(card, dataTab.firstChild.nextSibling);
+    container = document.getElementById('memberPaymentSummary');
+  }
+  const arr = getEstimates();
+  const members = getMembers();
+  const memberMap = Object.fromEntries(members.map(m => [m.id, m.name]));
+  // メンバーごとに集計（実績ありなら実績、なければ見積見込み）
+  const summary = {};
+  arr.forEach(e => {
+    if (!e.assignments || e.assignments.length === 0) return;
+    e.assignments.forEach(a => {
+      if (!summary[a.memberId]) summary[a.memberId] = { cases: 0, hours: 0, payment: 0, paid: 0, unpaid: 0 };
+      summary[a.memberId].cases++;
+      summary[a.memberId].hours += a.hours || 0;
+      summary[a.memberId].payment += a.payment || 0;
+      if (e.actual) summary[a.memberId].paid += a.payment || 0;
+      else summary[a.memberId].unpaid += a.payment || 0;
+    });
+  });
+  const entries = Object.entries(summary).sort((a,b) => b[1].payment - a[1].payment);
+  if (entries.length === 0) {
+    container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;font-size:13px;">まだ担当割当のある案件がありません</p>';
+    return;
+  }
+  container.innerHTML = `
+    <div style="display:grid;grid-template-columns:1.4fr 0.7fr 0.9fr 1.1fr 1.1fr;gap:4px;padding:8px;background:#e6efe6;color:#2d5a3d;font-weight:700;font-size:11px;border-radius:6px 6px 0 0;">
+      <div>メンバー</div><div>件数</div><div>時間</div><div>支払済</div><div>未払（予定）</div>
+    </div>
+  ` + entries.map(([id, s]) => {
+    const name = memberMap[id] || '(削除済み)';
+    return `<div style="display:grid;grid-template-columns:1.4fr 0.7fr 0.9fr 1.1fr 1.1fr;gap:4px;padding:8px;border-bottom:1px solid #eef2ee;font-size:12px;background:#fff;align-items:center;">
+      <div><b>${escapeHtml(name)}</b></div>
+      <div>${s.cases}件</div>
+      <div>${s.hours.toFixed(1)}h</div>
+      <div style="color:#2d5a3d;font-weight:700;">¥${Math.round(s.paid).toLocaleString()}</div>
+      <div style="color:#8b6914;font-weight:700;">¥${Math.round(s.unpaid).toLocaleString()}</div>
+    </div>`;
+  }).join('') + `
+    <div style="display:grid;grid-template-columns:1.4fr 0.7fr 0.9fr 1.1fr 1.1fr;gap:4px;padding:10px 8px;background:#fff3d0;color:#8b6914;font-weight:700;font-size:12px;border-radius:0 0 6px 6px;align-items:center;">
+      <div>合計</div>
+      <div>—</div>
+      <div>${entries.reduce((s,[_,v]) => s + v.hours, 0).toFixed(1)}h</div>
+      <div>¥${entries.reduce((s,[_,v]) => s + v.paid, 0).toLocaleString()}</div>
+      <div>¥${entries.reduce((s,[_,v]) => s + v.unpaid, 0).toLocaleString()}</div>
+    </div>
+  `;
+}
+
+// ============================================================
+// 🧠 学習: 見積 vs 実績 比較分析（データタブに表示）
+// ============================================================
+const _origRenderData = window.renderData;
+window.renderData = function() {
+  if (_origRenderData) _origRenderData();
+  renderMemberPaymentSummary();
+  // 学習セクションを追加描画
+  let learnContainer = document.getElementById('learnAnalysis');
+  if (!learnContainer) {
+    const dataTab = document.getElementById('tab-data');
+    if (!dataTab) return;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <h2>🧠 学習: 見積 vs 実績</h2>
+      <div id="learnAnalysis"></div>
+    `;
+    dataTab.insertBefore(card, dataTab.firstChild.nextSibling);
+    learnContainer = document.getElementById('learnAnalysis');
+  }
+  const arr = getEstimates();
+  const withActual = arr.filter(e => e.actual);
+  if (withActual.length === 0) {
+    learnContainer.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">実績データがありません<br><small>案件をタップ → 実績を入力すると分析が始まります</small></p>';
+    return;
+  }
+  // 比較テーブル + 平均ズレ
+  const rows = [`<div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 0.9fr;gap:4px;padding:8px;background:#e6efe6;color:#2d5a3d;font-weight:700;font-size:12px;border-radius:6px 6px 0 0;">
+    <div>案件</div><div>予定 h</div><div>実績 h</div><div>差</div>
+  </div>`];
+  let sumDiff = 0; let count = 0;
+  withActual.slice(-15).reverse().forEach(e => {
+    const planH = e.hours?.total || 0;
+    const actH = e.actual.hours?.total || (e.actual.totalHours || 0);
+    const diff = actH - planH;
+    sumDiff += diff; count++;
+    const cls = diff > 0 ? '#a04040' : '#1f7a3a';
+    rows.push(`<div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 0.9fr;gap:4px;padding:8px;border-bottom:1px solid #eef2ee;font-size:12px;background:#fff;">
+      <div>${escapeHtml(e.site)}</div>
+      <div>${planH.toFixed(1)}h</div>
+      <div>${actH.toFixed(1)}h</div>
+      <div style="color:${cls};font-weight:700;">${diff>=0?'+':''}${diff.toFixed(1)}h</div>
+    </div>`);
+  });
+  const avg = count > 0 ? sumDiff/count : 0;
+  let trend = '✓ 予定通り';
+  let trendColor = '#1f7a3a';
+  if (avg > 0.5) { trend = '⚠️ 予定より長くなる傾向。設定で機械効率を下げると精度UP'; trendColor = '#d4a843'; }
+  else if (avg < -0.5) { trend = '✅ 予定より早く終わる傾向。効率を上げると見積精度UP'; trendColor = '#1f7a3a'; }
+  // 機械別実効率
+  const byM = { karibaraiki:{area:0,hours:0,n:0}, homen:{area:0,hours:0,n:0}, hammer:{area:0,hours:0,n:0} };
+  withActual.forEach(e => {
+    const ratio = (e.actual.hours?.total || 0) / (e.hours?.total || 1);
+    (e.machines||[]).forEach(mc => {
+      if (byM[mc.key]) {
+        byM[mc.key].area += (mc.hours * (e.area / (e.hours?.total || 1))) || 0;
+        byM[mc.key].hours += (mc.hours * ratio) || 0;
+        byM[mc.key].n++;
+      }
+    });
+  });
+  const machineStatRows = Object.entries(byM).filter(([_,d]) => d.hours > 0).map(([k,d]) => `
+    <div style="background:#f7faf7;padding:10px;border-radius:8px;text-align:center;">
+      <div style="font-size:18px;font-weight:700;color:#2d5a3d;">${Math.round(d.area/d.hours)}</div>
+      <div style="font-size:10px;color:#666;">${MACHINE_LABELS[k]}<br>㎡/h (実績${d.n}件)</div>
+    </div>
+  `).join('');
+
+  learnContainer.innerHTML = `
+    <div style="border:1px solid #d7e0d7;border-radius:8px;overflow:hidden;margin-bottom:12px;">${rows.join('')}</div>
+    <div style="background:#fffbe6;border-left:4px solid ${trendColor};padding:10px;border-radius:6px;font-size:12px;color:#7a6014;line-height:1.7;margin-bottom:12px;">
+      <b>平均ズレ: ${avg>=0?'+':''}${avg.toFixed(1)}h</b><br>${trend}
+    </div>
+    ${machineStatRows ? '<h3 style="font-size:13px;color:#2d5a3d;margin:12px 0 8px;">📊 機械別 実効率（実績ベース）</h3><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;">' + machineStatRows + '</div>' : ''}
+  `;
+};
+
+// ============================================================
+// ☁️ GitHub バックアップ
+// ============================================================
+function loadGitHubSettings() {
+  const s = JSON.parse(localStorage.getItem('mowingGitHubSettings') || '{}');
+  document.getElementById('ghToken').value = s.token || '';
+  document.getElementById('ghRepo').value = s.repo || '';
+  document.getElementById('ghPath').value = s.path || 'data/backup.json';
+  document.getElementById('ghLastSync').textContent = s.lastSync || '未設定';
+}
+function saveGitHubSettings() {
+  const settings = {
+    token: document.getElementById('ghToken').value.trim(),
+    repo: document.getElementById('ghRepo').value.trim(),
+    path: document.getElementById('ghPath').value.trim() || 'data/backup.json',
+    lastSync: JSON.parse(localStorage.getItem('mowingGitHubSettings') || '{}').lastSync || ''
+  };
+  if (!settings.token || !settings.repo) {
+    alert('Token と Repository を入力してください');
+    return;
+  }
+  localStorage.setItem('mowingGitHubSettings', JSON.stringify(settings));
+  alert('GitHub設定を保存しました');
+}
+
+async function syncToGitHub() {
+  const s = JSON.parse(localStorage.getItem('mowingGitHubSettings') || '{}');
+  if (!s.token || !s.repo || !s.path) {
+    alert('先にGitHub設定を保存してください');
+    return;
+  }
+  document.getElementById('ghLastSync').textContent = '保存中…';
+  const data = {
+    estimates: getEstimates(),
+    members: getMembers(),
+    settings: getSettings(),
+    exportedAt: new Date().toISOString(),
+    version: 'v4'
+  };
+  const content = JSON.stringify(data, null, 2);
+  // base64エンコード（マルチバイト対応）
+  const contentB64 = btoa(unescape(encodeURIComponent(content)));
+  const apiUrl = `https://api.github.com/repos/${s.repo}/contents/${s.path}`;
+  try {
+    // 既存ファイルのSHAを取得（更新の場合）
+    let sha = null;
+    try {
+      const getRes = await fetch(apiUrl, {
+        headers: { 'Authorization': `Bearer ${s.token}`, 'Accept': 'application/vnd.github+json' }
+      });
+      if (getRes.ok) {
+        const existing = await getRes.json();
+        sha = existing.sha;
+      }
+    } catch (e) { /* ファイル新規作成の場合はsha不要 */ }
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${s.token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `Backup at ${new Date().toISOString()}`,
+        content: contentB64,
+        sha: sha || undefined
+      })
+    });
+    if (!putRes.ok) {
+      const err = await putRes.json();
+      throw new Error(err.message || `HTTP ${putRes.status}`);
+    }
+    const now = new Date().toLocaleString('ja-JP');
+    s.lastSync = now;
+    localStorage.setItem('mowingGitHubSettings', JSON.stringify(s));
+    document.getElementById('ghLastSync').textContent = now + ' ✓';
+    alert(`✅ GitHubに保存しました\n${s.repo}/${s.path}`);
+  } catch (e) {
+    document.getElementById('ghLastSync').textContent = '❌ エラー';
+    alert('GitHub保存失敗: ' + e.message + '\n\nTokenの権限・リポジトリ名を確認してください。');
+  }
+}
+
+async function loadFromGitHub() {
+  const s = JSON.parse(localStorage.getItem('mowingGitHubSettings') || '{}');
+  if (!s.token || !s.repo || !s.path) {
+    alert('先にGitHub設定を保存してください');
+    return;
+  }
+  if (!confirm('GitHubから読み込んで現在のデータを置き換えますか？\n（事前にJSONバックアップを取ることをおすすめします）')) return;
+  const apiUrl = `https://api.github.com/repos/${s.repo}/contents/${s.path}`;
+  try {
+    const res = await fetch(apiUrl, {
+      headers: { 'Authorization': `Bearer ${s.token}`, 'Accept': 'application/vnd.github+json' }
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || `HTTP ${res.status}`);
+    }
+    const fileData = await res.json();
+    // base64デコード
+    const content = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
+    const data = JSON.parse(content);
+    if (data.estimates) putEstimates(data.estimates);
+    if (data.members) putMembers(data.members);
+    if (data.settings) putSettings(data.settings);
+    alert(`✅ GitHubから復元しました\n見積${data.estimates?.length||0}件 / メンバー${data.members?.length||0}人`);
+    location.reload();
+  } catch (e) {
+    alert('GitHub読み込み失敗: ' + e.message);
+  }
+}
+
+// データタブ表示時に設定をロード
+const _origRenderData2 = window.renderData;
+window.renderData = function() {
+  if (_origRenderData2) _origRenderData2();
+  loadGitHubSettings();
+};
+
+// 初回レンダリング
+renderMembers();
+renderSchedule();
+loadGitHubSettings();
+</script>
+</body>
+</html>
