@@ -1149,6 +1149,12 @@ function calc() {
   };
 
   const blocks = [];
+  // 面積ベース請求額（メイン）
+  blocks.push('<div class="breakdown-section">&#x1F4D0; 面積ベース見積（顧客請求額）</div>');
+  blocks.push('<div class="breakdown-row" style="background:#e6efe6;"><div class="label"><b>&#x1F3AF; 顧客請求額（面積ベース）</b></div><div class="detail">' + totalArea.toLocaleString() + '&#x33A1; &times; 地形単価 &times; 草状態 &times; 割引</div><div class="amount" style="font-size:16px;font-weight:700;color:#1f5c2e;">&#xA5;' + total.toLocaleString() + '</div></div>');
+  // 機械ベース比較（委託費）
+  const outsrcFraction_disp = S.outsrcRate > 0 ? S.outsrcRate / 100 : 0.6;
+  const machineTotal_disp = machineBase > 0 ? Math.ceil(machineBase / outsrcFraction_disp / 100) * 100 : 0;
 
   // ===== 機械ベース = 委託先支払 → 顧客請求額 =====
   blocks.push(`<div class="breakdown-section">🔧 機械ベース（委託先への支払）</div>`);
@@ -1822,7 +1828,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-02 11:00';
+const BUILD_STAMP = '2026-05-03 11:00';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
