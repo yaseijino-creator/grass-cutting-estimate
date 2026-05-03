@@ -1094,27 +1094,29 @@ function calc() {
   // === 機械ベース = 委託先に払う金額 (時間 × 時給 の合計) ===
   const machineBase = basePrice;
 
-  // 顧客請求額 = 機械ベース ÷ 委託率
-  // 例: 機械計60,000円、委託率60% → 60,000÷0.6 = 100,000円を顧客に請求
-  const outsrcFraction = S.outsrcRate > 0 ? S.outsrcRate / 100 : 0.6;
-  const machineBasedTotal = machineBase > 0
-    ? Math.ceil(machineBase / outsrcFraction / 100) * 100  // 100円単位切り上げ
-    : Math.ceil(afterFreq / 100) * 100;                    // 機械未入力時は面積ベース
-
-  // 移動費は1案件につき固定
+  // ★ 顧客請求額 = 面積ベース（地形単価 × 面積の合計 × 草状態 × 契約割引）
   const distTotal = state.distAdd;
-  let total = machineBasedTotal + distTotal;
+  let subtotal = afterFreq + distTotal;
+  let total = subtotal;
 
   // 最低料金保証
   let minPriceAdj = 0;
   if (total < S.minPrice) { minPriceAdj = S.minPrice - total; total = S.minPrice; }
 
+  // 100円単位切り上げ
   const beforeRound = total;
-  const roundAdj = 0; // 切上はmachineBasedTotal計算時に実施済
+  total = Math.ceil(total / 100) * 100;
+  const roundAdj = total - beforeRound;
 
-  // 委託先支払 = 機械ベース (時間×時給 の合計がそのまま委託先へ)
+  // 委託先支払 = 機械ベース (時間×時給 の合計)
   const outsrcPay = machineBase;
   const myProfit = total - outsrcPay;
+
+  // 比較用: 機械ベースから逆算した顧客請求額
+  const outsrcFraction = S.outsrcRate > 0 ? S.outsrcRate / 100 : 0.6;
+  const machineBasedTotal = machineBase > 0
+    ? Math.ceil(machineBase / outsrcFraction / 100) * 100
+    : 0;
 
   // 機械ごとの委託支払 = 時間×時給 (そのまま)
   machines.forEach(m => {
@@ -1150,11 +1152,20 @@ function calc() {
 
   const blocks = [];
 
-  // ===== 機械ベース = 委託先支払 → 顧客請求額 =====
-  blocks.push(`<div class="breakdown-section">🔧 機械ベース（委託先への支払）</div>`);
+  // ===== ① 面積ベース請求額（メイン） =====
+  blocks.push(`<div class="breakdown-section">📐 面積ベース見積（顧客請求額）</div>`);
+  blocks.push(`
+    <div class="breakdown-row" style="background:#e6efe6;">
+      <div class="label"><b>🎯 顧客請求額（面積ベース）</b></div>
+      <div class="detail">${totalArea.toLocaleString()}㎡ × 地形単価 × 草状態 × 割引</div>
+      <div class="amount" style="font-size:16px;font-weight:700;color:#1f5c2e;">¥${total.toLocaleString()}</div>
+    </div>
+  `);
 
+  // ===== ② 機械ベース比較（参考・委託先支払） =====
+  blocks.push(`<div class="breakdown-section">🔧 機械ベース（委託先への支払 ＆ 比較）</div>`);
   if (machineBase === 0) {
-    blocks.push(`<div class="breakdown-row"><div class="label" style="color:#999;grid-column:1/4;text-align:center;">機械時間を入力すると請求額が自動計算されます</div></div>`);
+    blocks.push(`<div class="breakdown-row"><div class="label" style="color:#999;grid-column:1/4;text-align:center;">機械時間を入力すると委託費と逆算請求額が表示されます</div></div>`);
   } else {
     machines.forEach(m => {
       blocks.push(`
@@ -1167,39 +1178,43 @@ function calc() {
     });
     blocks.push(`
       <div class="breakdown-row" style="background:#fff8e1;border-left:3px solid #f0c040;">
-        <div class="label"><b>委託先 合計</b></div>
-        <div class="detail">↑ の合計 (委託先に渡す金額)</div>
+        <div class="label"><b>委託先 合計（支払額）</b></div>
+        <div class="detail">時間×時給 合計（委託先に渡す金額）</div>
         <div class="amount"><b>¥${machineBase.toLocaleString()}</b></div>
       </div>
     `);
     blocks.push(`
       <div class="breakdown-row billable-highlight">
-        <div class="label"><b>💴 顧客請求額</b></div>
-        <div class="detail">委託合計 ÷ 委託率${S.outsrcRate}%</div>
+        <div class="label"><b>💴 機械ベース逆算請求額</b></div>
+        <div class="detail">委託合計 ÷ 委託率${S.outsrcRate}%（参考値）</div>
         <div class="amount billable-amount">¥${machineBasedTotal.toLocaleString()}</div>
       </div>
     `);
-  }
-
-  // 粗利表示（機械ベース新ロジック）
-  const realProfit = total - machineBase;
-  const profitColor = machineBase === 0 ? '#888' : realProfit > 0 ? '#1f7a3a' : realProfit < 0 ? '#a04040' : '#d4a843';
-  const profitLabel = machineBase === 0 ? '— 機械未入力'
-    : realProfit > 0 ? `✓ 粗利 +¥${Math.round(realProfit).toLocaleString()}`
-    : realProfit < 0 ? `❌ 赤字 −¥${Math.abs(Math.round(realProfit)).toLocaleString()}`
-    : '⚠ トントン';
-  if (machineBase > 0) {
+    // 2つの比較
+    const diff = total - machineBasedTotal;
+    const diffColor = Math.abs(diff) < total*0.1 ? '#1f7a3a' : '#c03050';
+    blocks.push(`
+      <div class="breakdown-row" style="background:#f0f4ff;border-left:3px solid #5577cc;">
+        <div class="label" style="color:${diffColor};"><b>📊 面積 vs 機械 差額</b></div>
+        <div class="detail" style="color:${diffColor};">面積ベース − 機械ベース逆算</div>
+        <div class="amount" style="color:${diffColor};font-weight:700;">${diff >= 0 ? '+' : ''}¥${diff.toLocaleString()}</div>
+      </div>
+    `);
+    // 粗利（面積ベース請求 − 委託費）
+    const realProfit = total - machineBase;
+    const profitColor = realProfit > 0 ? '#1f7a3a' : '#a04040';
+    const profitLabel = realProfit > 0 ? `✓ 粗利 +¥${Math.round(realProfit).toLocaleString()}` : `❌ 赤字 −¥${Math.abs(Math.round(realProfit)).toLocaleString()}`;
     blocks.push(`
       <div class="breakdown-row" style="background:#f7faf7;border-left:3px solid ${profitColor};">
         <div class="label" style="color:${profitColor};"><b>${profitLabel}</b></div>
-        <div class="detail" style="color:${profitColor};">請求 − 委託 = ¥${total.toLocaleString()} − ¥${machineBase.toLocaleString()}</div>
+        <div class="detail" style="color:${profitColor};">面積ベース請求 − 委託費 = ¥${total.toLocaleString()} − ¥${machineBase.toLocaleString()}</div>
         <div class="amount" style="color:${profitColor};">¥${Math.round(realProfit).toLocaleString()}</div>
       </div>
     `);
   }
 
-  // 参考: 面積ベース
-  blocks.push(`<div class="breakdown-section">📐 参考: 面積ベース試算 (${totalArea.toLocaleString()}㎡ × ${S.baseRateM2}円/㎡)</div>`);
+  // 面積ベース内訳の詳細
+  blocks.push(`<div class="breakdown-section">📐 面積ベース内訳</div>`);
   const terrainDetail = state.areaRows.filter(r => r.area > 0)
     .map(r => `${r.terrain}${r.area}㎡`).join(' / ');
   blocks.push(`
@@ -1822,7 +1837,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-02 11:00';
+const BUILD_STAMP = '2026-05-03 11:00';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
