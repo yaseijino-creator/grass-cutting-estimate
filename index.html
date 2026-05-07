@@ -686,14 +686,33 @@
       </select>
     </div>
     <div class="field">
-      <label>募集人数</label>
-      <input type="number" id="jobBoardCount" value="1" min="1" max="10" style="width:80px;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:15px;">
-      名
+      <label>機械別 募集人数（0=不要、不要な機械は空欄か0）</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px;">
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:#2d5a3d;font-weight:600;margin-bottom:4px;">🌿 刈払機</div>
+          <input type="number" id="countKaribaraiki" value="0" min="0" max="10" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:16px;text-align:center;">
+          <div style="font-size:11px;color:#888;margin-top:2px;">名</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:#2d5a3d;font-weight:600;margin-bottom:4px;">🚜 方面草刈機</div>
+          <input type="number" id="countHomen" value="0" min="0" max="10" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:16px;text-align:center;">
+          <div style="font-size:11px;color:#888;margin-top:2px;">名</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:#2d5a3d;font-weight:600;margin-bottom:4px;">⚙️ ハンマーモア</div>
+          <input type="number" id="countHammer" value="0" min="0" max="10" style="width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:16px;text-align:center;">
+          <div style="font-size:11px;color:#888;margin-top:2px;">名</div>
+        </div>
+      </div>
     </div>
-    <button class="action-btn" onclick="generateJobNotice()" style="background:#2d6a3f;">📱 LINE通知テンプレを生成</button>
+    <button class="action-btn" onclick="generateJobNotice()" style="background:#2d6a3f;">📱 LINE通知テンプレを生成（1通）</button>
     <div id="jobNoticeResult" style="display:none;margin-top:12px;">
       <div style="background:white;border:1px solid #a5d6a7;border-radius:8px;padding:12px;font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:monospace;" id="jobNoticeText"></div>
-      <button class="action-btn secondary" onclick="copyJobNotice()" style="margin-top:8px;">📋 コピー</button>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+        <button class="action-btn" id="copyAndOpenBtn" onclick="copyAndOpenLine()" style="flex:2;min-width:200px;background:#00b900;font-size:15px;padding:14px 10px;font-weight:700;">📲 コピー＋LINEで配信</button>
+        <button class="action-btn secondary" id="copyJobBtn" onclick="copyJobNotice()" style="flex:1;min-width:90px;font-size:13px;">📋 コピーのみ</button>
+      </div>
+      <div id="copySuccessMsg" style="display:none;color:#2d6a3f;font-size:13px;text-align:center;margin-top:6px;font-weight:600;">✅ コピーしました！LINEに貼り付けてください</div>
     </div>
   </div>
 
@@ -1900,7 +1919,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-07 10:00';
+const BUILD_STAMP = '2026-05-08 14:00';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -2108,42 +2127,98 @@ function populateJobBoardSelect() {
 
 function generateJobNotice() {
   const estId = document.getElementById('jobBoardEstSelect').value;
-  const count = parseInt(document.getElementById('jobBoardCount').value)||1;
   if (!estId) { alert('見積を選択してください'); return; }
   const e = getEstimates().find(x => x.id === estId);
   if (!e) return;
-  const S = getSettings();
+
+  // 機械別募集人数
+  const cK = parseInt(document.getElementById('countKaribaraiki')?.value)||0;
+  const cH = parseInt(document.getElementById('countHomen')?.value)||0;
+  const cM = parseInt(document.getElementById('countHammer')?.value)||0;
+  if (cK + cH + cM === 0) { alert('少なくとも1機械に募集人数を入力してください'); return; }
+
   // 地形内訳
   const terrainStr = (e.areaRows||[]).filter(r=>r.area>0).map(r=>`${r.terrain}${r.area}㎡`).join('・') || `${e.area||0}㎡`;
-  // 使用機械
-  const machineLabels = {karibaraiki:'刈払機', homen:'方面草刈機', hammer:'ハンマーモア'};
-  const machines = Object.entries(e.hours||{}).filter(([k,v])=>k!=='total'&&v>0).map(([k])=>machineLabels[k]||k).join(' + ') || '未指定';
+
+  // 機械別作業時間の目安（見積から取得）
+  const hoursK = e.hours?.karibaraiki || 0;
+  const hoursH = e.hours?.homen || 0;
+  const hoursM = e.hours?.hammer || 0;
+  const fmtH = h => h > 0 ? `⏱目安${h}h` : '';
+
+  // 機械別募集行（1通にまとめる・時間も各行に表示）
+  const machineLines = [];
+  if (cK > 0) machineLines.push(`🌿 刈払機：${cK}名募集（先着順）${fmtH(hoursK)}`);
+  if (cH > 0) machineLines.push(`🚜 方面草刈機：${cH}名募集（先着順）${fmtH(hoursH)}`);
+  if (cM > 0) machineLines.push(`⚙️ ハンマーモア：${cM}名募集（先着順）${fmtH(hoursM)}`);
+
   // 単価概算
   const price = e.customerPrice ? `約${Math.round(e.customerPrice/10000*10)/10}万円` : '応相談';
+  const totalCount = cK + cH + cM;
+
   const tpl = `🌿【草刈り案件のお知らせ】草刈りたい！
 
 ━━━━━━━━━━━━━━
-📍 場所：${e.site||e.siteAreaText||'吉賀町〇〇地区'}
+📍 場所：${escapeHtml(e.site||'吉賀町〇〇地区')}
 🏔 地形：${terrainStr}
-🔧 必要機械：${machines}
 📅 日時：${e.workDate||e.date||'〇月〇日'}
-⏱ 目安：${Math.ceil((e.hours&&e.hours.total)||3)}時間程度
-💰 単価：${price}
-👤 募集：${count}名（先着順）
+💰 案件単価：${price}
+━━━━━━━━━━━━━━
+【機械別 募集（先着順）】
+${machineLines.join('\n')}
 ━━━━━━━━━━━━━━
 
-参加できる方は↓をタップ！
-（定員になり次第締め切ります）
+参加できる機械を選んで返信！
+（定員になり次第その機械は締め切り）
 
-✅ 参加できます`;
+✅ 刈払機で参加します${cK>0?'（残'+cK+'枠）':'（今回募集なし）'}
+✅ 方面草刈機で参加します${cH>0?'（残'+cH+'枠）':'（今回募集なし）'}
+✅ ハンマーモアで参加します${cM>0?'（残'+cM+'枠）':'（今回募集なし）'}
+
+※参加後にグループへご招待します`;
 
   document.getElementById('jobNoticeText').textContent = tpl;
   document.getElementById('jobNoticeResult').style.display = 'block';
+  document.getElementById('copySuccessMsg').style.display = 'none';
 }
 
 function copyJobNotice() {
   const txt = document.getElementById('jobNoticeText').textContent;
-  navigator.clipboard.writeText(txt).then(() => alert('コピーしました！LINEに貼り付けてください'));
+  const btn = document.getElementById('copyJobBtn');
+  const doFallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = '✅ コピー済み！';
+    setTimeout(() => { btn.textContent = '📋 コピーのみ'; }, 3000);
+  };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(() => {
+      btn.textContent = '✅ コピー済み！';
+      setTimeout(() => { btn.textContent = '📋 コピーのみ'; }, 3000);
+    }).catch(doFallback);
+  } else { doFallback(); }
+}
+
+// コピー＋LINE一発起動
+function copyAndOpenLine() {
+  const txt = document.getElementById('jobNoticeText').textContent;
+  const btn = document.getElementById('copyAndOpenBtn');
+  const openLine = () => {
+    window.open('https://manager.line.biz/', '_blank');
+    btn.textContent = '✅ コピー！LINE開きました';
+    document.getElementById('copySuccessMsg').style.display = 'block';
+    setTimeout(() => { btn.textContent = '📲 コピー＋LINEで配信'; }, 4000);
+  };
+  const doFallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    openLine();
+  };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).then(openLine).catch(doFallback);
+  } else { doFallback(); }
 }
 
 // ============================================================
