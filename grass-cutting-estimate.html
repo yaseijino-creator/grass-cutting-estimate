@@ -432,8 +432,9 @@
       <input type="date" id="estDate">
     </div>
     <div class="field">
-      <label>作業予定日（任意・スケジュールに反映）</label>
-      <input type="date" id="workDate">
+      <label>作業予定日（任意・複数可・スケジュールに反映）</label>
+      <div id="workDatesContainer"></div>
+      <button class="add-area-btn" onclick="addWorkDate()" style="margin-top:4px;">＋ 日付を追加</button>
     </div>
   </div>
 
@@ -1672,6 +1673,15 @@ function loadEstimateToForm(id) {
     });
   }
 
+  // 作業予定日を復元（複数対応）
+  const datesContainer = document.getElementById('workDatesContainer');
+  if (datesContainer) {
+    datesContainer.innerHTML = '';
+    const dates = e.workDates || (e.workDate ? [e.workDate] : []);
+    if (dates.length === 0) dates.push('');
+    dates.forEach(d => addWorkDate(d));
+  }
+
   // 再計算
   renderAreaRows();
   updateMachineAllocSummary();
@@ -1919,7 +1929,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-08 15:00';
+const BUILD_STAMP = '2026-05-09 10:00';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -1953,10 +1963,27 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ============================================================
+// 作業予定日 複数対応
+// ============================================================
+function addWorkDate(val = '') {
+  const c = document.getElementById('workDatesContainer');
+  if (!c) return;
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:6px;margin-bottom:6px;align-items:center;';
+  row.innerHTML = `<input type="date" class="workDateInput" value="${val}" style="flex:1;padding:10px 12px;border:1px solid #ccc;border-radius:8px;font-size:16px;background:#fafafa;">
+    <button onclick="this.parentElement.remove()" style="padding:8px 12px;background:#fdecec;color:#b04040;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:700;">×</button>`;
+  c.appendChild(row);
+}
+function getWorkDates() {
+  return [...document.querySelectorAll('.workDateInput')].map(i=>i.value).filter(v=>v);
+}
+
+// ============================================================
 // 初期化
 // ============================================================
 document.getElementById('buildTime').textContent = BUILD_STAMP;
 document.getElementById('estDate').value = new Date().toISOString().slice(0,10);
+addWorkDate(); // 初期表示で1行追加
 updateRateLabels();
 addAreaRow('平地', 0);
 calc();
@@ -2161,7 +2188,7 @@ function generateJobNotice() {
 ━━━━━━━━━━━━━━
 📍 場所：${escapeHtml(e.site||'吉賀町〇〇地区')}
 🏔 地形：${terrainStr}
-📅 日時：${e.workDate||e.date||'〇月〇日'}
+📅 日時：${(e.workDates?.length>0 ? e.workDates.join(' / ') : e.workDate) || e.date || '〇月〇日'}
 ━━━━━━━━━━━━━━
 【機械別 募集（先着順）】
 ${machineLines.join('\n')}
@@ -2172,9 +2199,7 @@ ${machineLines.join('\n')}
 
 ✅ 刈払機で参加します${cK>0?'（残'+cK+'枠）':'（今回募集なし）'}
 ✅ 方面草刈機で参加します${cH>0?'（残'+cH+'枠）':'（今回募集なし）'}
-✅ ハンマーモアで参加します${cM>0?'（残'+cM+'枠）':'（今回募集なし）'}
-
-※参加後にグループへご招待します`;
+✅ ハンマーモアで参加します${cM>0?'（残'+cM+'枠）':'（今回募集なし）'}`;
 
   document.getElementById('jobNoticeText').textContent = tpl;
   document.getElementById('jobNoticeResult').style.display = 'block';
@@ -2204,7 +2229,7 @@ function copyAndOpenLine() {
   const txt = document.getElementById('jobNoticeText').textContent;
   const btn = document.getElementById('copyAndOpenBtn');
   const openLine = () => {
-    window.open('https://manager.line.biz/', '_blank');
+    window.open('https://manager.line.biz/account/@561zguua/broadcast/create', '_blank');
     btn.textContent = '✅ コピー！LINE開きました';
     document.getElementById('copySuccessMsg').style.display = 'block';
     setTimeout(() => { btn.textContent = '📲 コピー＋LINEで配信'; }, 4000);
@@ -2266,7 +2291,8 @@ function renderMemberDashboard() {
 // 📅 スケジュール生成（同エリア優先・移動最小）
 // ============================================================
 function renderSchedule() {
-  const arr = getEstimates().filter(e => e.workDate);
+  // 複数作業予定日に対応: workDates配列 または workDate単体
+  const arr = getEstimates().filter(e => (e.workDates?.length > 0) || e.workDate);
   if (arr.length === 0) {
     document.getElementById('scheduleArea').innerHTML = '<p style="color:#999;text-align:center;padding:30px;">作業予定日のある案件がありません<br><small>見積保存時に「作業予定日」を入れてください</small></p>';
     return;
@@ -2274,11 +2300,15 @@ function renderSchedule() {
   // メンバー名マップ
   const members = getMembers();
   const memberMap = Object.fromEntries(members.map(m => [m.id, m.name]));
-  // 日付ごとにグループ化、各日付内でエリア順
+  // 日付ごとにグループ化（複数日付対応）
   const byDate = {};
   arr.forEach(e => {
-    if (!byDate[e.workDate]) byDate[e.workDate] = [];
-    byDate[e.workDate].push(e);
+    const dates = e.workDates?.length > 0 ? e.workDates : (e.workDate ? [e.workDate] : []);
+    dates.forEach(d => {
+      if (!d) return;
+      if (!byDate[d]) byDate[d] = [];
+      byDate[d].push(e);
+    });
   });
   Object.keys(byDate).forEach(d => byDate[d].sort((a,b) => (a.siteAreaText||'').localeCompare(b.siteAreaText||'')));
   const dates = Object.keys(byDate).sort();
@@ -2327,7 +2357,8 @@ window.saveEstimate = function() {
   if (!r) { alert('面積・地形を入力してください'); return; }
   const name = document.getElementById('siteName').value || '(名称未設定)';
   const siteAreaText = document.getElementById('siteArea')?.value || '';
-  const workDate = document.getElementById('workDate')?.value || '';
+  const workDates = getWorkDates();
+  const workDate = workDates[0] || ''; // 後方互換用（最初の日付）
   const hoursObj = { total: r.totalHours };
   const machineAreas = {};
   MACHINE_DEFS.forEach(def => {
@@ -2342,7 +2373,7 @@ window.saveEstimate = function() {
     createdAt: new Date().toISOString(),
     date: document.getElementById('estDate').value || new Date().toISOString().slice(0,10),
     site: name,
-    siteAreaText, workDate,
+    siteAreaText, workDate, workDates,
     area: r.totalArea,
     areaRows: state.areaRows.map(x => ({terrain:x.terrain, price:x.price||x.mult*11||11, mult:x.price/11||x.mult||1, area:x.area})),
     avgTerrainMult: r.avgTerrainMult,
@@ -2368,7 +2399,7 @@ window.saveEstimate = function() {
   renderRecordList();
   renderData();
   renderSchedule();
-  alert('見積を保存しました: ' + name + (workDate ? `\n作業予定日: ${workDate}` : ''));
+  alert('見積を保存しました: ' + name + (workDates.length > 0 ? `\n作業予定日: ${workDates.join(' / ')}` : ''));
 };
 
 // タブ切替時のレンダリング追加
