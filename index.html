@@ -1919,7 +1919,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-08 15:00';
+const BUILD_STAMP = '2026-05-09 09:00';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -2172,9 +2172,7 @@ ${machineLines.join('\n')}
 
 ✅ 刈払機で参加します${cK>0?'（残'+cK+'枠）':'（今回募集なし）'}
 ✅ 方面草刈機で参加します${cH>0?'（残'+cH+'枠）':'（今回募集なし）'}
-✅ ハンマーモアで参加します${cM>0?'（残'+cM+'枠）':'（今回募集なし）'}
-
-※参加後にグループへご招待します`;
+✅ ハンマーモアで参加します${cM>0?'（残'+cM+'枠）':'（今回募集なし）'}`;
 
   document.getElementById('jobNoticeText').textContent = tpl;
   document.getElementById('jobNoticeResult').style.display = 'block';
@@ -2204,7 +2202,7 @@ function copyAndOpenLine() {
   const txt = document.getElementById('jobNoticeText').textContent;
   const btn = document.getElementById('copyAndOpenBtn');
   const openLine = () => {
-    window.open('https://manager.line.biz/', '_blank');
+    window.open('https://manager.line.biz/account/@561zguua/broadcast/create', '_blank');
     btn.textContent = '✅ コピー！LINE開きました';
     document.getElementById('copySuccessMsg').style.display = 'block';
     setTimeout(() => { btn.textContent = '📲 コピー＋LINEで配信'; }, 4000);
