@@ -1919,7 +1919,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-08 14:00';
+const BUILD_STAMP = '2026-05-08 15:00';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -2162,7 +2162,6 @@ function generateJobNotice() {
 📍 場所：${escapeHtml(e.site||'吉賀町〇〇地区')}
 🏔 地形：${terrainStr}
 📅 日時：${e.workDate||e.date||'〇月〇日'}
-💰 案件単価：${price}
 ━━━━━━━━━━━━━━
 【機械別 募集（先着順）】
 ${machineLines.join('\n')}
