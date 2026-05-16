@@ -1963,7 +1963,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-17 05:23';
+const BUILD_STAMP = '2026-05-17 07:16';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -3005,13 +3005,18 @@ async function exportTeamData() {
 // 🔄 メンバー一覧を team.json から同期 (C案: 完全自動化版)
 // ============================================================
 
-const TEAM_JSON_URL = 'https://kusakaritai.yaseijino.workers.dev/data/team.json';
+// GitHub の raw URL を使用（CORS対応 + Apps Script 更新が即時反映される）
+const TEAM_JSON_URL = 'https://raw.githubusercontent.com/yaseijino-creator/kusakari-site/main/data/team.json';
 
-async function syncMembersFromTeamJson() {
+async function syncMembersFromTeamJson(opts) {
+  opts = opts || {};
+  const silent = opts.silent === true;
   const statusEl = document.getElementById('lastSyncMembers');
   const pendingArea = document.getElementById('pendingAppsArea');
-  if (statusEl) statusEl.textContent = '同期中...';
-  if (pendingArea) pendingArea.innerHTML = '';
+  if (!silent) {
+    if (statusEl) statusEl.textContent = '同期中...';
+    if (pendingArea) pendingArea.innerHTML = '';
+  }
 
   try {
     const r = await fetch(TEAM_JSON_URL + '?t=' + Date.now());
@@ -3020,9 +3025,11 @@ async function syncMembersFromTeamJson() {
     const remoteMembers = Array.isArray(teamData.members) ? teamData.members : [];
 
     if (remoteMembers.length === 0) {
-      if (pendingArea) pendingArea.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">📭 team.json にメンバーがまだいません。フォーム経由で登録されるとここに表示されます。</p>';
-      if (statusEl) statusEl.textContent = new Date().toLocaleString('ja-JP') + '（メンバー0人）';
-      return;
+      if (!silent) {
+        if (pendingArea) pendingArea.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">📭 team.json にメンバーがまだいません。フォーム経由で登録されるとここに表示されます。</p>';
+        if (statusEl) statusEl.textContent = new Date().toLocaleString('ja-JP') + '（メンバー0人）';
+      }
+      return { added: 0, updated: 0, total: 0 };
     }
 
     // ローカルとマージ
@@ -3081,24 +3088,63 @@ async function syncMembersFromTeamJson() {
     localStorage.setItem('teamMembersLastSync', now);
     if (statusEl) statusEl.textContent = now;
 
-    let msg = `✅ 同期完了\n\nteam.json のメンバー: ${remoteMembers.length}人\n`;
-    msg += `新規追加: ${added}人${addedNames.length>0 ? '（' + addedNames.join(', ') + '）' : ''}\n`;
-    msg += `情報更新: ${updated}人`;
-    if (added === 0 && updated === 0) msg += '\n\n変更ありませんでした。';
+    if (!silent) {
+      let msg = `✅ 同期完了\n\nteam.json のメンバー: ${remoteMembers.length}人\n`;
+      msg += `新規追加: ${added}人${addedNames.length>0 ? '（' + addedNames.join(', ') + '）' : ''}\n`;
+      msg += `情報更新: ${updated}人`;
+      if (added === 0 && updated === 0) msg += '\n\n変更ありませんでした。';
 
-    if (pendingArea) {
-      pendingArea.innerHTML = `<p style="color:#2d5a3d;text-align:center;padding:12px;background:#e6efe6;border-radius:6px;font-size:13px;">
-        ✅ team.json メンバー: ${remoteMembers.length}人 / 新規: ${added}人 / 更新: ${updated}人
-      </p>`;
+      if (pendingArea) {
+        pendingArea.innerHTML = `<p style="color:#2d5a3d;text-align:center;padding:12px;background:#e6efe6;border-radius:6px;font-size:13px;">
+          ✅ team.json メンバー: ${remoteMembers.length}人 / 新規: ${added}人 / 更新: ${updated}人
+        </p>`;
+      }
+
+      alert(msg);
+    } else {
+      // 静かに新規取り込み通知（ヘッダーバナー）
+      if (added > 0) showSilentSyncNotice(added, addedNames);
     }
-
-    alert(msg);
+    return { added, updated, total: remoteMembers.length };
   } catch (e) {
-    if (statusEl) statusEl.textContent = '❌ エラー';
-    if (pendingArea) pendingArea.innerHTML = `<p style="color:#c03050;text-align:center;padding:20px;">❌ 同期失敗: ${escapeHtml(e.message)}</p>`;
-    alert('同期失敗: ' + e.message);
+    if (!silent) {
+      if (statusEl) statusEl.textContent = '❌ エラー';
+      if (pendingArea) pendingArea.innerHTML = `<p style="color:#c03050;text-align:center;padding:20px;">❌ 同期失敗: ${escapeHtml(e.message)}</p>`;
+      alert('同期失敗: ' + e.message);
+    } else {
+      console.warn('[自動同期] 失敗:', e.message);
+    }
+    return { added: 0, updated: 0, total: 0, error: e.message };
   }
 }
+
+// 起動時のサイレント同期で新規メンバーがあった時のバナー通知
+function showSilentSyncNotice(added, names) {
+  let banner = document.getElementById('silentSyncBanner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'silentSyncBanner';
+    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#2d6a3f;color:#fff;padding:10px 16px;font-size:13px;text-align:center;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,0.2);cursor:pointer;';
+    banner.addEventListener('click', () => banner.style.display = 'none');
+    document.body.appendChild(banner);
+  }
+  const nameStr = names.slice(0, 3).join('、') + (names.length > 3 ? ` ほか${names.length-3}名` : '');
+  banner.innerHTML = `🌿 新規メンバー <b>${added}人</b> を取り込みました（${escapeHtml(nameStr)}） <span style="opacity:.7;margin-left:8px;">タップで閉じる</span>`;
+  banner.style.display = 'block';
+  // 8秒後に自動で閉じる
+  setTimeout(() => { if (banner) banner.style.display = 'none'; }, 8000);
+}
+
+// 🚀 起動時に自動でメンバー同期 (サイレント、エラーは握りつぶし)
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    if (typeof syncMembersFromTeamJson === 'function') {
+      syncMembersFromTeamJson({ silent: true }).catch(function(e) {
+        console.warn('[自動同期] エラー:', e);
+      });
+    }
+  }, 800);
+});
 
 // ====== 旧スプレッドシート連携関数（後方互換のためstub） ======
 function saveFormSheetUrl() {
