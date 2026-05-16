@@ -579,18 +579,17 @@
   </div>
 
   <div class="card" style="background:#fef9e7;border:1.5px solid #f0d870;">
-    <h2>📥 メンバー申請の取り込み <span class="hint">Google フォーム経由の登録申請を反映</span></h2>
+    <h2>🔄 メンバー一覧を team.json から同期 <span class="hint">Apps Script が自動登録した新メンバーを取り込み</span></h2>
     <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
-      公式LINEから Google フォームで申請があったメンバーを、ワンクリックでメンバー一覧に追加できます。<br>
-      事前に「<b>メンバー登録自動化_セットアップ手順.md</b>」のとおりにフォームと Apps Script を構築してください。
+      Google フォームで登録された新メンバーは、Apps Script が自動で team.json に追加します（C案）。<br>
+      このボタンを押すと、team.json から最新メンバー情報を取得して見積ツールに取り込みます。<br>
+      <b>案件割り当てに新メンバーを使えるようにする時はこのボタンを押してください。</b>
     </p>
-    <div class="field">
-      <label>スプレッドシート URL（フォーム回答先）</label>
-      <input type="text" id="formSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/xxxxx/edit...">
-      <div style="font-size:11px;color:#666;margin-top:3px;">スプレッドシートを「リンクを知っている全員が閲覧」に設定しておく必要があります</div>
+    <input type="hidden" id="formSheetUrl">
+    <div id="syncMembersStatus" style="font-size:12px;color:#555;padding:8px;background:#fff;border-radius:6px;margin-bottom:10px;">
+      最終同期: <span id="lastSyncMembers">未実施</span>
     </div>
-    <button class="btn btn-secondary" onclick="saveFormSheetUrl()">💾 URLを保存</button>
-    <button class="btn btn-primary" onclick="fetchPendingApplications()">🔄 申請を取得</button>
+    <button class="btn btn-primary" onclick="syncMembersFromTeamJson()">🔄 メンバー一覧を同期</button>
     <div id="pendingAppsArea" style="margin-top:14px;"></div>
   </div>
 
@@ -1964,7 +1963,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-17 00:09';
+const BUILD_STAMP = '2026-05-17 05:23';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -3003,9 +3002,105 @@ async function exportTeamData() {
 }
 
 // ============================================================
-// 📥 メンバー申請取り込み (Google フォーム連携)
+// 🔄 メンバー一覧を team.json から同期 (C案: 完全自動化版)
 // ============================================================
 
+const TEAM_JSON_URL = 'https://kusakaritai.yaseijino.workers.dev/data/team.json';
+
+async function syncMembersFromTeamJson() {
+  const statusEl = document.getElementById('lastSyncMembers');
+  const pendingArea = document.getElementById('pendingAppsArea');
+  if (statusEl) statusEl.textContent = '同期中...';
+  if (pendingArea) pendingArea.innerHTML = '';
+
+  try {
+    const r = await fetch(TEAM_JSON_URL + '?t=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const teamData = await r.json();
+    const remoteMembers = Array.isArray(teamData.members) ? teamData.members : [];
+
+    if (remoteMembers.length === 0) {
+      if (pendingArea) pendingArea.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">📭 team.json にメンバーがまだいません。フォーム経由で登録されるとここに表示されます。</p>';
+      if (statusEl) statusEl.textContent = new Date().toLocaleString('ja-JP') + '（メンバー0人）';
+      return;
+    }
+
+    // ローカルとマージ
+    const local = getMembers();
+    const localByCode = {};
+    local.forEach(m => { if (m.accessCode) localByCode[m.accessCode] = m; });
+
+    let added = 0;
+    let updated = 0;
+    const addedNames = [];
+    remoteMembers.forEach(rm => {
+      if (!rm.accessCode) return;
+      const existing = localByCode[rm.accessCode];
+      if (existing) {
+        // 既存メンバー: 不足項目だけ補完
+        let changed = false;
+        ['phone','region','age','experienceYears','skills','availableDays','truck','dangerousWork','lineGroup','note','email','birthday','status'].forEach(k => {
+          const isEmpty = (v) => v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0);
+          if (isEmpty(existing[k]) && !isEmpty(rm[k])) {
+            existing[k] = rm[k];
+            changed = true;
+          }
+        });
+        if (changed) updated++;
+      } else {
+        // 新規メンバー: そのまま追加
+        local.push({
+          id: rm.id || 'm_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+          name: rm.name || '名前未取得',
+          accessCode: rm.accessCode,
+          phone: rm.phone || '',
+          region: rm.region || '',
+          age: rm.age || 0,
+          experienceYears: rm.experienceYears || 0,
+          skills: rm.skills || [],
+          availableDays: rm.availableDays || [],
+          truck: !!rm.truck,
+          dangerousWork: !!rm.dangerousWork,
+          lineGroup: !!rm.lineGroup,
+          note: rm.note || '',
+          email: rm.email || '',
+          birthday: rm.birthday || '',
+          status: rm.status || 'active'
+        });
+        added++;
+        addedNames.push(rm.name || '名前未取得');
+      }
+    });
+
+    if (added > 0 || updated > 0) {
+      putMembers(local);
+      if (typeof renderMembers === 'function') renderMembers();
+    }
+
+    const now = new Date().toLocaleString('ja-JP');
+    localStorage.setItem('teamMembersLastSync', now);
+    if (statusEl) statusEl.textContent = now;
+
+    let msg = `✅ 同期完了\n\nteam.json のメンバー: ${remoteMembers.length}人\n`;
+    msg += `新規追加: ${added}人${addedNames.length>0 ? '（' + addedNames.join(', ') + '）' : ''}\n`;
+    msg += `情報更新: ${updated}人`;
+    if (added === 0 && updated === 0) msg += '\n\n変更ありませんでした。';
+
+    if (pendingArea) {
+      pendingArea.innerHTML = `<p style="color:#2d5a3d;text-align:center;padding:12px;background:#e6efe6;border-radius:6px;font-size:13px;">
+        ✅ team.json メンバー: ${remoteMembers.length}人 / 新規: ${added}人 / 更新: ${updated}人
+      </p>`;
+    }
+
+    alert(msg);
+  } catch (e) {
+    if (statusEl) statusEl.textContent = '❌ エラー';
+    if (pendingArea) pendingArea.innerHTML = `<p style="color:#c03050;text-align:center;padding:20px;">❌ 同期失敗: ${escapeHtml(e.message)}</p>`;
+    alert('同期失敗: ' + e.message);
+  }
+}
+
+// ====== 旧スプレッドシート連携関数（後方互換のためstub） ======
 function saveFormSheetUrl() {
   const url = document.getElementById('formSheetUrl').value.trim();
   if (!url) { alert('スプレッドシートのURLを入力してください'); return; }
