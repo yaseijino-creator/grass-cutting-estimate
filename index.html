@@ -578,6 +578,22 @@
     <button class="btn btn-danger" onclick="clearAllData()">🗑 全データ削除</button>
   </div>
 
+  <div class="card" style="background:#fef9e7;border:1.5px solid #f0d870;">
+    <h2>📥 メンバー申請の取り込み <span class="hint">Google フォーム経由の登録申請を反映</span></h2>
+    <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
+      公式LINEから Google フォームで申請があったメンバーを、ワンクリックでメンバー一覧に追加できます。<br>
+      事前に「<b>メンバー登録自動化_セットアップ手順.md</b>」のとおりにフォームと Apps Script を構築してください。
+    </p>
+    <div class="field">
+      <label>スプレッドシート URL（フォーム回答先）</label>
+      <input type="text" id="formSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/xxxxx/edit...">
+      <div style="font-size:11px;color:#666;margin-top:3px;">スプレッドシートを「リンクを知っている全員が閲覧」に設定しておく必要があります</div>
+    </div>
+    <button class="btn btn-secondary" onclick="saveFormSheetUrl()">💾 URLを保存</button>
+    <button class="btn btn-primary" onclick="fetchPendingApplications()">🔄 申請を取得</button>
+    <div id="pendingAppsArea" style="margin-top:14px;"></div>
+  </div>
+
   <div class="card" style="background:#f0f8f0;border:1.5px solid #a5d6a7;">
     <h2>👥 メンバー用ページに公開 <span class="hint">案件・スケジュールをメンバーに共有</span></h2>
     <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
@@ -1948,7 +1964,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-16 22:00';
+const BUILD_STAMP = '2026-05-16 22:40';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -2986,6 +3002,206 @@ async function exportTeamData() {
   }
 }
 
+// ============================================================
+// 📥 メンバー申請取り込み (Google フォーム連携)
+// ============================================================
+
+function saveFormSheetUrl() {
+  const url = document.getElementById('formSheetUrl').value.trim();
+  if (!url) { alert('スプレッドシートのURLを入力してください'); return; }
+  if (!url.includes('docs.google.com/spreadsheets')) {
+    alert('Google スプレッドシートのURLを入力してください');
+    return;
+  }
+  localStorage.setItem('formSheetUrl', url);
+  alert('✅ スプレッドシートURLを保存しました');
+}
+
+function loadFormSheetUrl() {
+  const url = localStorage.getItem('formSheetUrl') || '';
+  const el = document.getElementById('formSheetUrl');
+  if (el) el.value = url;
+}
+
+// スプレッドシートURL → CSV エクスポートURL に変換
+function buildCsvExportUrl(sheetUrl) {
+  const m = sheetUrl.match(/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  if (!m) return null;
+  const id = m[1];
+  // gid指定（最初のシートはgid=0）
+  return `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=0`;
+}
+
+// 簡易CSVパーサ（フォームの値にカンマや改行が含まれる可能性がある）
+function parseCSV(text) {
+  const rows = [];
+  let cur = [];
+  let field = '';
+  let inQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuote) {
+      if (c === '"') {
+        if (text[i+1] === '"') { field += '"'; i++; }
+        else { inQuote = false; }
+      } else {
+        field += c;
+      }
+    } else {
+      if (c === '"') inQuote = true;
+      else if (c === ',') { cur.push(field); field = ''; }
+      else if (c === '\n') { cur.push(field); rows.push(cur); cur = []; field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else field += c;
+    }
+  }
+  if (field || cur.length) { cur.push(field); rows.push(cur); }
+  return rows;
+}
+
+async function fetchPendingApplications() {
+  const url = (document.getElementById('formSheetUrl').value || '').trim();
+  if (!url) { alert('まずスプレッドシートURLを入力して保存してください'); return; }
+  const csvUrl = buildCsvExportUrl(url);
+  if (!csvUrl) { alert('スプレッドシートURLの形式が正しくありません'); return; }
+
+  const area = document.getElementById('pendingAppsArea');
+  area.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">⏳ 取得中…</p>';
+
+  try {
+    const r = await fetch(csvUrl);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const csv = await r.text();
+    const rows = parseCSV(csv).filter(row => row.length > 1);
+    if (rows.length < 2) {
+      area.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">📭 まだ申請がありません</p>';
+      return;
+    }
+    const headers = rows[0];
+    const data = rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] || ''; });
+      return obj;
+    });
+
+    // 取込済リスト（localStorage）と照合
+    const imported = JSON.parse(localStorage.getItem('importedAppRows') || '[]');
+    const pending = data.filter(d => {
+      const code = d['アクセスコード'];
+      return code && !imported.includes(code);
+    });
+
+    if (pending.length === 0) {
+      area.innerHTML = '<p style="color:#888;text-align:center;padding:20px;">✅ 未取込の申請はありません</p>';
+      return;
+    }
+
+    area.innerHTML = `
+      <div style="font-size:13px;color:#2d5a3d;font-weight:600;margin-bottom:8px;">📋 未取込の申請: ${pending.length}件</div>
+      ${pending.map((d, idx) => renderApplicationCard(d, idx)).join('')}
+    `;
+    // データを window に保持してボタンから参照
+    window._pendingApplications = pending;
+  } catch (e) {
+    area.innerHTML = `<p style="color:#c03050;text-align:center;padding:20px;">❌ 取得失敗: ${escapeHtml(e.message)}<br><span style="font-size:11px;color:#888;">スプレッドシートの共有設定（リンクを知っている全員が閲覧）を確認してください</span></p>`;
+  }
+}
+
+function renderApplicationCard(d, idx) {
+  const name = d['お名前（フルネーム）'] || d['お名前'] || '名前未取得';
+  const email = d['メールアドレス'] || '';
+  const phone = d['電話番号'] || '';
+  const region = d['お住まいの地域'] || '';
+  const skills = d['使える機械'] || '';
+  const days = d['作業可能曜日'] || '';
+  const exp = d['草刈り経験年数'] || '';
+  const truck = d['軽トラの所有'] || '';
+  const danger = d['急傾斜地での作業'] || '';
+  const lineGroup = d['LINEグループ参加'] || '';
+  const code = d['アクセスコード'] || '';
+  const ts = d['タイムスタンプ'] || '';
+  const note = d['自己紹介・備考'] || '';
+  return `
+    <div style="background:#fff;border:1px solid #f0d870;border-left:4px solid #f0c040;border-radius:8px;padding:12px 14px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:15px;">${escapeHtml(name)} <span style="font-size:11px;color:#888;font-weight:400;margin-left:6px;">${escapeHtml(ts)}</span></div>
+          <div style="font-size:12px;color:#555;margin-top:3px;">📧 ${escapeHtml(email)} ／ 📞 ${escapeHtml(phone)} ／ 📍 ${escapeHtml(region)}</div>
+          <div style="font-size:12px;color:#555;margin-top:3px;">🛠 ${escapeHtml(skills)} ／ 📅 ${escapeHtml(days)} ／ 経験${escapeHtml(exp)}年</div>
+          <div style="font-size:11px;color:#666;margin-top:3px;">軽トラ:${escapeHtml(truck)} ／ 急傾斜:${escapeHtml(danger)} ／ LINEグループ:${escapeHtml(lineGroup)}</div>
+          ${note ? `<div style="font-size:11px;color:#7a5510;margin-top:4px;background:#fffbe6;padding:5px 8px;border-radius:5px;">📝 ${escapeHtml(note)}</div>` : ''}
+          <div style="font-size:11px;color:#7a5f10;margin-top:5px;">🔑 コード: <code style="font-family:'SF Mono',monospace;font-weight:700;">${escapeHtml(code)}</code></div>
+        </div>
+        <button class="action-btn" style="width:auto;padding:8px 14px;font-size:13px;margin:0;flex-shrink:0;background:#2d6a3f;" onclick="importApplication(${idx})">取り込む</button>
+      </div>
+    </div>`;
+}
+
+function importApplication(idx) {
+  const d = (window._pendingApplications || [])[idx];
+  if (!d) { alert('申請データが見つかりません。再度「申請を取得」してください'); return; }
+
+  const name = d['お名前（フルネーム）'] || d['お名前'] || '';
+  if (!name) { alert('名前が空のため取り込めません'); return; }
+  const code = d['アクセスコード'] || '';
+  if (!/^\d{6}$/.test(code)) {
+    if (!confirm('このアクセスコードは無効です。新しいコードを生成しますか？')) return;
+  }
+
+  // 機械: "仮払機, 方面草刈機" のような文字列 → ['karibaraiki', 'homen']
+  const skillsText = d['使える機械'] || '';
+  const skillMap = { '仮払機': 'karibaraiki', '方面草刈機': 'homen', 'ハンマーモア': 'hammer' };
+  const skills = Object.keys(skillMap).filter(k => skillsText.includes(k)).map(k => skillMap[k]);
+
+  // 曜日
+  const daysText = d['作業可能曜日'] || '';
+  const dayMap = { '月': 'mon', '火': 'tue', '水': 'wed', '木': 'thu', '金': 'fri', '土': 'sat', '日': 'sun' };
+  const availableDays = Object.keys(dayMap).filter(k => daysText.includes(k)).map(k => dayMap[k]);
+
+  const truck = (d['軽トラの所有'] || '').includes('あり');
+  const danger = (d['急傾斜地での作業'] || '').includes('OK');
+  const lineGroup = (d['LINEグループ参加'] || '').includes('OK');
+
+  const newMember = {
+    id: 'm_' + Date.now(),
+    name: name,
+    phone: d['電話番号'] || '',
+    region: d['お住まいの地域'] || '',
+    age: parseInt(d['年齢']) || 0,
+    experienceYears: parseInt(d['草刈り経験年数']) || 0,
+    skills: skills,
+    availableDays: availableDays,
+    truck: truck,
+    dangerousWork: danger,
+    lineGroup: lineGroup,
+    note: d['自己紹介・備考'] || '',
+    email: d['メールアドレス'] || '',
+    birthday: d['生年月日'] || '',
+    accessCode: /^\d{6}$/.test(code) ? code : generateAccessCode(),
+    status: 'active'
+  };
+
+  // 重複チェック（同じアクセスコードのメンバーがいないか）
+  const existing = getMembers();
+  if (existing.some(m => m.accessCode === newMember.accessCode)) {
+    alert('このアクセスコードのメンバーは既に登録済みです');
+    return;
+  }
+  existing.push(newMember);
+  putMembers(existing);
+
+  // 取込済リストに追加
+  const imported = JSON.parse(localStorage.getItem('importedAppRows') || '[]');
+  imported.push(newMember.accessCode);
+  localStorage.setItem('importedAppRows', JSON.stringify(imported));
+
+  alert(`✅ メンバーに追加しました\n\n${name}（${newMember.region}）\nコード: ${newMember.accessCode}`);
+
+  // 一覧を再描画
+  if (typeof renderMembers === 'function') renderMembers();
+  fetchPendingApplications();
+}
+
 async function loadFromGitHub() {
   const s = JSON.parse(localStorage.getItem('mowingGitHubSettings') || '{}');
   if (!s.token || !s.repo || !s.path) {
@@ -3021,6 +3237,7 @@ const _origRenderData2 = window.renderData;
 window.renderData = function() {
   if (_origRenderData2) _origRenderData2();
   loadGitHubSettings();
+  loadFormSheetUrl();
   const lastExport = localStorage.getItem('teamLastExport');
   const el = document.getElementById('teamLastExport');
   if (el && lastExport) el.textContent = lastExport;
