@@ -432,9 +432,8 @@
       <input type="date" id="estDate">
     </div>
     <div class="field">
-      <label>作業予定日（任意・複数可・スケジュールに反映）</label>
-      <div id="workDatesContainer"></div>
-      <button class="add-area-btn" onclick="addWorkDate()" style="margin-top:4px;">＋ 日付を追加</button>
+      <label>作業予定日（任意・スケジュールに反映）</label>
+      <input type="date" id="workDate">
     </div>
   </div>
 
@@ -579,6 +578,27 @@
     <button class="btn btn-danger" onclick="clearAllData()">🗑 全データ削除</button>
   </div>
 
+  <div class="card" style="background:#f0f8f0;border:1.5px solid #a5d6a7;">
+    <h2>👥 メンバー用ページに公開 <span class="hint">案件・スケジュールをメンバーに共有</span></h2>
+    <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
+      担当者が割り当てられた案件を、メンバー本人がスマホから確認できるようにします。<br>
+      下のボタンを押すと、個人情報をマスクしたデータが GitHub 経由でメンバー用ページ（<a href="https://kusakaritai.yaseijino.workers.dev/team/" target="_blank">kusakaritai.yaseijino.workers.dev/team/</a>）に反映されます。
+    </p>
+    <div id="teamExportStatus" style="font-size:12px;color:#555;padding:8px;background:#fff;border-radius:6px;margin-bottom:10px;">
+      最終公開: <span id="teamLastExport">未公開</span>
+    </div>
+    <button class="btn btn-primary" onclick="exportTeamData()">📤 メンバー用ページを更新（公開）</button>
+    <details style="margin-top:10px;font-size:12px;">
+      <summary style="cursor:pointer;color:#2d5a3d;font-weight:600;">📖 メンバーへの公開仕様（クリックで展開）</summary>
+      <div style="padding:10px 14px;background:#fffbe6;border-radius:6px;margin-top:6px;line-height:1.8;">
+        <b>メンバーに見える情報</b>:<br>
+        ✓ 顧客名（姓のみ+様）／住所（大字まで、番地非表示）／作業日／面積／自分の担当機械・面積・時間・委託金<br>
+        ✗ 電話番号・備考メモ・顧客請求総額・他メンバーの委託金 は非公開<br><br>
+        <b>アクセス</b>: 各メンバーのページでアクセスコード(6桁)を入れる。コードは「人員」タブのメンバー編集で確認・コピー可能。
+      </div>
+    </details>
+  </div>
+
   <div class="card">
     <h2>☁️ GitHub バックアップ <span class="hint">データを失わない安心設定</span></h2>
     <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
@@ -709,11 +729,7 @@
     <button class="action-btn" onclick="generateJobNotice()" style="background:#2d6a3f;">📱 LINE通知テンプレを生成（1通）</button>
     <div id="jobNoticeResult" style="display:none;margin-top:12px;">
       <div style="background:white;border:1px solid #a5d6a7;border-radius:8px;padding:12px;font-size:13px;line-height:1.8;white-space:pre-wrap;font-family:monospace;" id="jobNoticeText"></div>
-      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
-        <button class="action-btn" id="copyAndOpenBtn" onclick="copyAndOpenLine()" style="flex:2;min-width:200px;background:#00b900;font-size:15px;padding:14px 10px;font-weight:700;">📲 コピー＋LINEで配信</button>
-        <button class="action-btn secondary" id="copyJobBtn" onclick="copyJobNotice()" style="flex:1;min-width:90px;font-size:13px;">📋 コピーのみ</button>
-      </div>
-      <div id="copySuccessMsg" style="display:none;color:#2d6a3f;font-size:13px;text-align:center;margin-top:6px;font-weight:600;">✅ コピーしました！LINEに貼り付けてください</div>
+      <button class="action-btn secondary" onclick="copyJobNotice()" style="margin-top:8px;">📋 コピー</button>
     </div>
   </div>
 
@@ -808,6 +824,18 @@
       </select>
     </div>
     <div class="field"><label>メモ</label><input type="text" id="memberNote" placeholder="特記事項など"></div>
+
+    <div class="field" style="background:#fff8d8;border:1px solid #f0d870;padding:10px;border-radius:8px;">
+      <label style="font-weight:700;color:#7a5f10;">🔑 メンバー専用アクセスコード（6桁）</label>
+      <div style="display:flex;gap:6px;align-items:center;margin-top:4px;">
+        <input type="text" id="memberAccessCode" maxlength="6" pattern="[0-9]{6}"
+               style="flex:1;font-family:'SF Mono',monospace;font-size:18px;letter-spacing:0.3em;text-align:center;padding:10px;border:1px solid #d0b070;border-radius:6px;background:#fffceb;">
+        <button type="button" class="action-btn secondary" style="width:auto;padding:8px 12px;font-size:12px;margin:0;flex-shrink:0;" onclick="regenerateAccessCode()">🎲 再生成</button>
+      </div>
+      <div style="font-size:11px;color:#7a5f10;margin-top:4px;">このコード入りのURLをLINEで送るとメンバーが自動ログインできます</div>
+      <button type="button" class="action-btn" style="background:#06C755;margin-top:8px;padding:10px;font-size:13px;" onclick="copyMemberLineInvite()">📋 LINE案内文をコピー</button>
+    </div>
+
     <button class="action-btn" onclick="saveMember()">💾 保存</button>
     <button class="action-btn danger" id="memberDeleteBtn" style="display:none" onclick="deleteMember()">🗑 削除</button>
     <button class="action-btn secondary" onclick="closeMemberModal()">閉じる</button>
@@ -1673,15 +1701,6 @@ function loadEstimateToForm(id) {
     });
   }
 
-  // 作業予定日を復元（複数対応）
-  const datesContainer = document.getElementById('workDatesContainer');
-  if (datesContainer) {
-    datesContainer.innerHTML = '';
-    const dates = e.workDates || (e.workDate ? [e.workDate] : []);
-    if (dates.length === 0) dates.push('');
-    dates.forEach(d => addWorkDate(d));
-  }
-
   // 再計算
   renderAreaRows();
   updateMachineAllocSummary();
@@ -1929,7 +1948,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-09 10:00';
+const BUILD_STAMP = '2026-05-16 22:00';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -1963,27 +1982,10 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ============================================================
-// 作業予定日 複数対応
-// ============================================================
-function addWorkDate(val = '') {
-  const c = document.getElementById('workDatesContainer');
-  if (!c) return;
-  const row = document.createElement('div');
-  row.style.cssText = 'display:flex;gap:6px;margin-bottom:6px;align-items:center;';
-  row.innerHTML = `<input type="date" class="workDateInput" value="${val}" style="flex:1;padding:10px 12px;border:1px solid #ccc;border-radius:8px;font-size:16px;background:#fafafa;">
-    <button onclick="this.parentElement.remove()" style="padding:8px 12px;background:#fdecec;color:#b04040;border:none;border-radius:8px;cursor:pointer;font-size:16px;font-weight:700;">×</button>`;
-  c.appendChild(row);
-}
-function getWorkDates() {
-  return [...document.querySelectorAll('.workDateInput')].map(i=>i.value).filter(v=>v);
-}
-
-// ============================================================
 // 初期化
 // ============================================================
 document.getElementById('buildTime').textContent = BUILD_STAMP;
 document.getElementById('estDate').value = new Date().toISOString().slice(0,10);
-addWorkDate(); // 初期表示で1行追加
 updateRateLabels();
 addAreaRow('平地', 0);
 calc();
@@ -2036,6 +2038,7 @@ function renderMembers() {
               ${badges?`<div style="margin-top:5px;">${badges}</div>`:''}
               ${m.experienceYears?`<div style="margin-top:2px;font-size:11px;color:#888;">経験${m.experienceYears}年</div>`:''}
               ${m.note?`<div style="margin-top:3px;font-size:11px;color:#a07000;">📝${escapeHtml(m.note)}</div>`:''}
+              ${m.accessCode?`<div style="margin-top:5px;display:flex;gap:6px;align-items:center;font-size:11px;color:#7a5f10;background:#fff8d8;padding:4px 8px;border-radius:6px;border:1px solid #f0d870;">🔑 コード: <code style="font-family:'SF Mono',monospace;font-weight:700;">${m.accessCode}</code></div>`:''}
             </div>
             <button class="action-btn secondary" style="width:auto;padding:6px 10px;font-size:12px;margin:0;flex-shrink:0;" onclick="openMemberModal('${m.id}')">編集</button>
           </div>
@@ -2078,6 +2081,7 @@ function openMemberModal(id) {
     document.getElementById('memberDanger').checked = !!m.dangerousWork;
     document.getElementById('memberLineGroup').checked = !!m.lineGroup;
     document.getElementById('memberNote').value = m.note||'';
+    document.getElementById('memberAccessCode').value = m.accessCode || generateAccessCode();
     document.querySelectorAll('#memberSkills .chip').forEach(c => {
       c.classList.toggle('active', m.skills.includes(c.dataset.skill));
     });
@@ -2096,9 +2100,40 @@ function openMemberModal(id) {
     document.getElementById('memberDanger').checked = false;
     document.getElementById('memberLineGroup').checked = false;
     document.querySelectorAll('#memberSkills .chip').forEach(c => c.classList.remove('active'));
+    document.getElementById('memberAccessCode').value = generateAccessCode();
     document.getElementById('memberDeleteBtn').style.display = 'none';
   }
   document.getElementById('memberModal').classList.add('show');
+}
+
+// 6桁アクセスコードを生成（既存メンバーと衝突しない）
+function generateAccessCode() {
+  const existing = new Set(getMembers().map(m => m.accessCode).filter(Boolean));
+  let code;
+  let tries = 0;
+  do {
+    code = String(Math.floor(100000 + Math.random() * 900000));
+    tries++;
+  } while (existing.has(code) && tries < 100);
+  return code;
+}
+
+function regenerateAccessCode() {
+  if (!confirm('アクセスコードを再生成しますか？\n再生成すると、現在のコードでログイン中のメンバーは「LINEで新コードを再受け取り」が必要になります。')) return;
+  document.getElementById('memberAccessCode').value = generateAccessCode();
+}
+
+function copyMemberLineInvite() {
+  const name = document.getElementById('memberName').value.trim() || 'メンバー';
+  const code = document.getElementById('memberAccessCode').value.trim();
+  if (!/^\d{6}$/.test(code)) { alert('まず6桁のアクセスコードを設定してください'); return; }
+  const url = `https://kusakaritai.yaseijino.workers.dev/team/?c=${code}`;
+  const text = `${name}さん、メンバー専用画面ができました🌿\n\n↓ ここをタップ\n${url}\n\n開いたら次回からはアイコンタップで開けるよう\n「共有」→「ホーム画面に追加」をしておくと便利です。\n\nコード: ${code}（万一の再入力用）`;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => alert('LINE案内文をコピーしました。LINEに貼り付けて送ってください。')).catch(() => prompt('手動でコピーしてください', text));
+  } else {
+    prompt('手動でコピーしてください', text);
+  }
 }
 document.querySelectorAll('#memberSkills .chip').forEach(chip => {
   chip.addEventListener('click', () => chip.classList.toggle('active'));
@@ -2111,8 +2146,22 @@ function saveMember() {
   const availableDays = [...document.querySelectorAll('.dayCheck:checked')].map(c => c.value);
   const status = document.getElementById('memberStatus').value;
   const id = document.getElementById('memberId').value;
+  // アクセスコード: 6桁数字以外は再生成
+  let accessCode = document.getElementById('memberAccessCode').value.trim();
+  if (!/^\d{6}$/.test(accessCode)) accessCode = generateAccessCode();
+  // 衝突チェック（自分以外と被ったらエラー）
+  const currentId = document.getElementById('memberId').value;
+  const dupCode = getMembers().find(m => m.id !== currentId && m.accessCode === accessCode);
+  if (dupCode) {
+    if (confirm(`このアクセスコードは「${dupCode.name}」さんと重複しています。\n自動で別のコードを発行しますか？`)) {
+      accessCode = generateAccessCode();
+    } else {
+      return;
+    }
+  }
   const newData = {
     name, skills, status, availableDays,
+    accessCode,
     phone: document.getElementById('memberPhone').value.trim(),
     region: document.getElementById('memberRegion').value.trim(),
     age: parseInt(document.getElementById('memberAge').value)||0,
@@ -2167,17 +2216,11 @@ function generateJobNotice() {
   // 地形内訳
   const terrainStr = (e.areaRows||[]).filter(r=>r.area>0).map(r=>`${r.terrain}${r.area}㎡`).join('・') || `${e.area||0}㎡`;
 
-  // 機械別作業時間の目安（見積から取得）
-  const hoursK = e.hours?.karibaraiki || 0;
-  const hoursH = e.hours?.homen || 0;
-  const hoursM = e.hours?.hammer || 0;
-  const fmtH = h => h > 0 ? `⏱目安${h}h` : '';
-
-  // 機械別募集行（1通にまとめる・時間も各行に表示）
+  // 機械別募集行（1通にまとめる）
   const machineLines = [];
-  if (cK > 0) machineLines.push(`🌿 刈払機：${cK}名募集（先着順）${fmtH(hoursK)}`);
-  if (cH > 0) machineLines.push(`🚜 方面草刈機：${cH}名募集（先着順）${fmtH(hoursH)}`);
-  if (cM > 0) machineLines.push(`⚙️ ハンマーモア：${cM}名募集（先着順）${fmtH(hoursM)}`);
+  if (cK > 0) machineLines.push(`🌿 刈払機：${cK}名募集（先着順）`);
+  if (cH > 0) machineLines.push(`🚜 方面草刈機：${cH}名募集（先着順）`);
+  if (cM > 0) machineLines.push(`⚙️ ハンマーモア：${cM}名募集（先着順）`);
 
   // 単価概算
   const price = e.customerPrice ? `約${Math.round(e.customerPrice/10000*10)/10}万円` : '応相談';
@@ -2188,7 +2231,9 @@ function generateJobNotice() {
 ━━━━━━━━━━━━━━
 📍 場所：${escapeHtml(e.site||'吉賀町〇〇地区')}
 🏔 地形：${terrainStr}
-📅 日時：${(e.workDates?.length>0 ? e.workDates.join(' / ') : e.workDate) || e.date || '〇月〇日'}
+📅 日時：${e.workDate||e.date||'〇月〇日'}
+⏱ 目安：${Math.ceil((e.hours&&e.hours.total)||3)}時間程度
+💰 案件単価：${price}
 ━━━━━━━━━━━━━━
 【機械別 募集（先着順）】
 ${machineLines.join('\n')}
@@ -2199,50 +2244,17 @@ ${machineLines.join('\n')}
 
 ✅ 刈払機で参加します${cK>0?'（残'+cK+'枠）':'（今回募集なし）'}
 ✅ 方面草刈機で参加します${cH>0?'（残'+cH+'枠）':'（今回募集なし）'}
-✅ ハンマーモアで参加します${cM>0?'（残'+cM+'枠）':'（今回募集なし）'}`;
+✅ ハンマーモアで参加します${cM>0?'（残'+cM+'枠）':'（今回募集なし）'}
+
+※参加後にグループへご招待します`;
 
   document.getElementById('jobNoticeText').textContent = tpl;
   document.getElementById('jobNoticeResult').style.display = 'block';
-  document.getElementById('copySuccessMsg').style.display = 'none';
 }
 
 function copyJobNotice() {
   const txt = document.getElementById('jobNoticeText').textContent;
-  const btn = document.getElementById('copyJobBtn');
-  const doFallback = () => {
-    const ta = document.createElement('textarea');
-    ta.value = txt; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    btn.textContent = '✅ コピー済み！';
-    setTimeout(() => { btn.textContent = '📋 コピーのみ'; }, 3000);
-  };
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(txt).then(() => {
-      btn.textContent = '✅ コピー済み！';
-      setTimeout(() => { btn.textContent = '📋 コピーのみ'; }, 3000);
-    }).catch(doFallback);
-  } else { doFallback(); }
-}
-
-// コピー＋LINE一発起動
-function copyAndOpenLine() {
-  const txt = document.getElementById('jobNoticeText').textContent;
-  const btn = document.getElementById('copyAndOpenBtn');
-  const openLine = () => {
-    window.open('https://manager.line.biz/account/@561zguua/broadcast/create', '_blank');
-    btn.textContent = '✅ コピー！LINE開きました';
-    document.getElementById('copySuccessMsg').style.display = 'block';
-    setTimeout(() => { btn.textContent = '📲 コピー＋LINEで配信'; }, 4000);
-  };
-  const doFallback = () => {
-    const ta = document.createElement('textarea');
-    ta.value = txt; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    openLine();
-  };
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(txt).then(openLine).catch(doFallback);
-  } else { doFallback(); }
+  navigator.clipboard.writeText(txt).then(() => alert('コピーしました！LINEに貼り付けてください'));
 }
 
 // ============================================================
@@ -2291,8 +2303,7 @@ function renderMemberDashboard() {
 // 📅 スケジュール生成（同エリア優先・移動最小）
 // ============================================================
 function renderSchedule() {
-  // 複数作業予定日に対応: workDates配列 または workDate単体
-  const arr = getEstimates().filter(e => (e.workDates?.length > 0) || e.workDate);
+  const arr = getEstimates().filter(e => e.workDate);
   if (arr.length === 0) {
     document.getElementById('scheduleArea').innerHTML = '<p style="color:#999;text-align:center;padding:30px;">作業予定日のある案件がありません<br><small>見積保存時に「作業予定日」を入れてください</small></p>';
     return;
@@ -2300,15 +2311,11 @@ function renderSchedule() {
   // メンバー名マップ
   const members = getMembers();
   const memberMap = Object.fromEntries(members.map(m => [m.id, m.name]));
-  // 日付ごとにグループ化（複数日付対応）
+  // 日付ごとにグループ化、各日付内でエリア順
   const byDate = {};
   arr.forEach(e => {
-    const dates = e.workDates?.length > 0 ? e.workDates : (e.workDate ? [e.workDate] : []);
-    dates.forEach(d => {
-      if (!d) return;
-      if (!byDate[d]) byDate[d] = [];
-      byDate[d].push(e);
-    });
+    if (!byDate[e.workDate]) byDate[e.workDate] = [];
+    byDate[e.workDate].push(e);
   });
   Object.keys(byDate).forEach(d => byDate[d].sort((a,b) => (a.siteAreaText||'').localeCompare(b.siteAreaText||'')));
   const dates = Object.keys(byDate).sort();
@@ -2357,8 +2364,7 @@ window.saveEstimate = function() {
   if (!r) { alert('面積・地形を入力してください'); return; }
   const name = document.getElementById('siteName').value || '(名称未設定)';
   const siteAreaText = document.getElementById('siteArea')?.value || '';
-  const workDates = getWorkDates();
-  const workDate = workDates[0] || ''; // 後方互換用（最初の日付）
+  const workDate = document.getElementById('workDate')?.value || '';
   const hoursObj = { total: r.totalHours };
   const machineAreas = {};
   MACHINE_DEFS.forEach(def => {
@@ -2373,7 +2379,7 @@ window.saveEstimate = function() {
     createdAt: new Date().toISOString(),
     date: document.getElementById('estDate').value || new Date().toISOString().slice(0,10),
     site: name,
-    siteAreaText, workDate, workDates,
+    siteAreaText, workDate,
     area: r.totalArea,
     areaRows: state.areaRows.map(x => ({terrain:x.terrain, price:x.price||x.mult*11||11, mult:x.price/11||x.mult||1, area:x.area})),
     avgTerrainMult: r.avgTerrainMult,
@@ -2399,7 +2405,7 @@ window.saveEstimate = function() {
   renderRecordList();
   renderData();
   renderSchedule();
-  alert('見積を保存しました: ' + name + (workDates.length > 0 ? `\n作業予定日: ${workDates.join(' / ')}` : ''));
+  alert('見積を保存しました: ' + name + (workDate ? `\n作業予定日: ${workDate}` : ''));
 };
 
 // タブ切替時のレンダリング追加
@@ -2845,6 +2851,141 @@ async function syncToGitHub() {
   }
 }
 
+// ============================================================
+// 👥 メンバー用ページ エクスポート（公開）
+// ============================================================
+const TEAM_EXPORT_REPO = 'yaseijino-creator/kusakari-site';
+const TEAM_EXPORT_PATH = 'data/team.json';
+
+// マスク処理: 顧客名→姓+様、住所→番地除去、個人情報は除外
+function maskEstimateForTeam(e, memberMap) {
+  // 顧客名: 先頭部分のみ取り出して「様」
+  let customerLabel = '—';
+  if (e.customer) {
+    const c = String(e.customer).trim().replace(/(様|さん|氏|殿|株式会社|有限会社)/g, '').trim();
+    const firstPart = c.split(/[\s　・]/)[0];
+    customerLabel = (firstPart || c).slice(0, 4) + '様';
+  } else if (e.site) {
+    customerLabel = String(e.site).slice(0, 10);
+  }
+
+  // 住所: 番地・丁目以降を除去
+  let addressArea = '';
+  const addr = e.address || '';
+  if (addr) {
+    addressArea = String(addr)
+      .replace(/[\d０-９]+[-－][\d０-９]+.*$/, '')
+      .replace(/[\d０-９]+番地.*$/, '')
+      .replace(/[\d０-９]+番.*$/, '')
+      .replace(/[\d０-９]+丁目.*$/, '')
+      .replace(/[\d０-９]+号.*$/, '')
+      .trim();
+    if (!addressArea) addressArea = addr.slice(0, 10);
+  } else if (e.site) {
+    addressArea = '';
+  }
+
+  // 現場の作業注意 (個人メモは除外)
+  const siteNote = e.workNote || '';
+
+  // assignments: memberName を補完
+  const assignments = (e.assignments || []).map(a => ({
+    memberId: a.memberId,
+    memberName: memberMap[a.memberId] || '?',
+    machine: a.machineKey || a.machine || '',
+    area: parseFloat(a.area) || 0,
+    hours: parseFloat(a.hours) || 0,
+    payment: parseFloat(a.payment) || 0
+  }));
+
+  const totalArea = e.totalArea ||
+    (e.areaRows||[]).reduce((s, r) => s + (parseFloat(r.area) || 0), 0);
+
+  return {
+    id: e.id,
+    customerLabel,
+    addressArea,
+    siteNote,
+    scheduledDate: e.scheduledDate || e.workDate || null,
+    totalArea,
+    assignments
+  };
+}
+
+async function exportTeamData() {
+  const s = JSON.parse(localStorage.getItem('mowingGitHubSettings') || '{}');
+  if (!s.token) {
+    alert('先に「☁️ GitHub バックアップ」セクションで Token を設定してください。\n同じTokenをメンバー公開にも使います。');
+    return;
+  }
+
+  // メンバー（accessCode付きのみ）
+  const allMembers = getMembers();
+  const memberMap = {};
+  allMembers.forEach(m => { memberMap[m.id] = m.name; });
+  const members = allMembers
+    .filter(m => m.accessCode && /^\d{6}$/.test(m.accessCode))
+    .map(m => ({ id: m.id, name: m.name, accessCode: m.accessCode }));
+
+  if (members.length === 0) {
+    alert('アクセスコード付きのメンバーがいません。\n「人員」タブでメンバーを編集して、アクセスコードを発行してください。');
+    return;
+  }
+
+  // 案件（assignments がある & どれかのメンバーが担当しているもの）
+  const memberIds = new Set(members.map(m => m.id));
+  const estimates = getEstimates()
+    .filter(e => (e.assignments || []).some(a => memberIds.has(a.memberId)))
+    .map(e => maskEstimateForTeam(e, memberMap));
+
+  const teamData = {
+    updated: new Date().toISOString(),
+    members,
+    estimates
+  };
+
+  document.getElementById('teamLastExport').textContent = '公開中…';
+  const content = JSON.stringify(teamData, null, 2);
+  const contentB64 = btoa(unescape(encodeURIComponent(content)));
+  const apiUrl = `https://api.github.com/repos/${TEAM_EXPORT_REPO}/contents/${TEAM_EXPORT_PATH}`;
+
+  try {
+    // 既存のSHA取得
+    let sha = null;
+    try {
+      const getRes = await fetch(apiUrl, {
+        headers: { 'Authorization': `Bearer ${s.token}`, 'Accept': 'application/vnd.github+json' }
+      });
+      if (getRes.ok) sha = (await getRes.json()).sha;
+    } catch (e) { /* new file */ }
+
+    const putRes = await fetch(apiUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${s.token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `Update team data: ${members.length} members, ${estimates.length} jobs`,
+        content: contentB64,
+        sha: sha || undefined
+      })
+    });
+    if (!putRes.ok) {
+      const err = await putRes.json();
+      throw new Error(err.message || `HTTP ${putRes.status}`);
+    }
+    const now = new Date().toLocaleString('ja-JP');
+    localStorage.setItem('teamLastExport', now);
+    document.getElementById('teamLastExport').textContent = now + ' ✓';
+    alert(`✅ メンバー用ページを更新しました\n\nメンバー: ${members.length}人\n公開案件: ${estimates.length}件\n\n反映まで1〜2分かかります（Cloudflare自動再ビルド）。`);
+  } catch (e) {
+    document.getElementById('teamLastExport').textContent = '❌ エラー';
+    alert('公開失敗: ' + e.message + '\n\nTokenの権限を確認してください（kusakari-siteへの書き込み権限が必要）。');
+  }
+}
+
 async function loadFromGitHub() {
   const s = JSON.parse(localStorage.getItem('mowingGitHubSettings') || '{}');
   if (!s.token || !s.repo || !s.path) {
@@ -2880,6 +3021,9 @@ const _origRenderData2 = window.renderData;
 window.renderData = function() {
   if (_origRenderData2) _origRenderData2();
   loadGitHubSettings();
+  const lastExport = localStorage.getItem('teamLastExport');
+  const el = document.getElementById('teamLastExport');
+  if (el && lastExport) el.textContent = lastExport;
 };
 
 // 初回レンダリング
