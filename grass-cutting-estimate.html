@@ -1964,7 +1964,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-16 22:40';
+const BUILD_STAMP = '2026-05-17 00:09';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -3018,9 +3018,16 @@ function saveFormSheetUrl() {
 }
 
 function loadFormSheetUrl() {
-  const url = localStorage.getItem('formSheetUrl') || '';
+  const DEFAULT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/10LE3j1GUHKu4VLT01HkmFkUxfFEI28PbBVB8v1MmJuI/edit';
+  let url = localStorage.getItem('formSheetUrl') || '';
   const el = document.getElementById('formSheetUrl');
-  if (el) el.value = url;
+  if (!el) return;
+  if (!url) {
+    // 初回はデフォルトURL（Cowork が作成したスプレッドシート）を設定して自動保存
+    url = DEFAULT_SHEET_URL;
+    localStorage.setItem('formSheetUrl', url);
+  }
+  el.value = url;
 }
 
 // スプレッドシートURL → CSV エクスポートURL に変換
