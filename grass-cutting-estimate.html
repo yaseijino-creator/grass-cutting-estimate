@@ -2002,6 +2002,9 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ============================================================
+// 機械ラベル（初期化より前に必要）
+const MACHINE_LABELS = { karibaraiki: '仮払機', homen: '方面草刈機', hammer: 'ハンマーモア' };
+
 // 初期化
 // ============================================================
 document.getElementById('buildTime').textContent = BUILD_STAMP;
@@ -2019,7 +2022,6 @@ setInterval(checkForUpdate, 60000);
 // ============================================================
 // 👥 メンバー管理
 // ============================================================
-const MACHINE_LABELS = { karibaraiki: '仮払機', homen: '方面草刈機', hammer: 'ハンマーモア' };
 
 function getMembers() {
   const m = JSON.parse(localStorage.getItem('mowingMembers') || 'null');
