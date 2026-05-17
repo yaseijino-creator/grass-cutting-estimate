@@ -781,6 +781,10 @@
     <button class="action-btn secondary" style="padding:8px;font-size:13px;margin-top:0;" onclick="addAssignRow()">＋ 担当を追加</button>
     <div id="assignSummary" style="background:#fffbe6;border-left:4px solid #f0c040;padding:10px 12px;border-radius:6px;margin-top:10px;font-size:13px;line-height:1.8;"></div>
     <div id="assignWarning" style="display:none;background:#fdecec;border-left:4px solid #c03050;padding:8px 12px;border-radius:6px;margin-top:8px;font-size:12px;color:#a02040;"></div>
+    <label style="display:flex;align-items:center;gap:8px;background:#e8f4ff;border:1px solid #80b4e0;padding:10px 12px;border-radius:8px;margin-top:10px;font-size:14px;cursor:pointer;">
+      <input type="checkbox" id="assignRecruiting" style="width:18px;height:18px;">
+      📢 隊員に募集を出す（隊員ページの「案件」タブに表示される）
+    </label>
     <button class="action-btn" style="margin-top:14px;" onclick="saveAssignment()">💾 担当を保存</button>
     <button class="action-btn warn" onclick="autoAssignMembers()">⚡ 必要機械から自動割当</button>
     <button class="action-btn secondary" onclick="closeAssignModal()">閉じる</button>
@@ -2461,6 +2465,8 @@ function openAssignModal(estId) {
     assignState.rows = [];
   }
   document.getElementById('assignEstId').value = estId;
+  const recruitingChk = document.getElementById('assignRecruiting');
+  if (recruitingChk) recruitingChk.checked = e.recruiting === true;
   const machineList = (e.machines||[]).filter(m => m.hours > 0).map(m => `${m.name} ${m.hours.toFixed(1)}h (${(e.machineAreas?.[m.key])?.toFixed(0) || '?'}㎡)`).join(' / ') || '機械情報なし';
   const totalArea = e.area || e.totalArea || 0;
   document.getElementById('assignInfo').innerHTML = `
@@ -2617,6 +2623,9 @@ function saveAssignment() {
   });
   // 旧フォーマットも互換のため保存
   arr[idx].assignedMembers = [...new Set(assignState.rows.map(r => r.memberId))];
+  // 募集中フラグ（隊員ページの「案件」タブに表示するか）
+  const recruitingChk = document.getElementById('assignRecruiting');
+  arr[idx].recruiting = !!(recruitingChk && recruitingChk.checked);
   putEstimates(arr);
   closeAssignModal();
   renderRecordList();
@@ -2928,7 +2937,8 @@ function maskEstimateForTeam(e, memberMap) {
     siteNote,
     scheduledDate: e.scheduledDate || e.workDate || null,
     totalArea,
-    assignments
+    assignments,
+    recruiting: e.recruiting === true
   };
 }
 
@@ -2954,10 +2964,13 @@ async function exportTeamData(opts) {
     return;
   }
 
-  // 案件（assignments がある & どれかのメンバーが担当しているもの）
+  // 案件（① 担当者がいる ＋ ② 募集中フラグON）
   const memberIds = new Set(members.map(m => m.id));
   const estimates = getEstimates()
-    .filter(e => (e.assignments || []).some(a => memberIds.has(a.memberId)))
+    .filter(e =>
+      (e.assignments || []).some(a => memberIds.has(a.memberId))
+      || e.recruiting === true
+    )
     .map(e => maskEstimateForTeam(e, memberMap));
 
   const teamData = {
