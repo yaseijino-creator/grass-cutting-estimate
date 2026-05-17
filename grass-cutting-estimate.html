@@ -1963,7 +1963,7 @@ function updateRateLabels() {
 // ============================================================
 // 自動更新チェック / 強制再読込
 // ============================================================
-const BUILD_STAMP = '2026-05-17 07:16';
+const BUILD_STAMP = '2026-05-17 12:11';
 
 // 強制再読込: URLにタイムスタンプを付けてキャッシュをバイパス
 function forceReload() {
@@ -2185,6 +2185,7 @@ function saveMember() {
     dangerousWork: document.getElementById('memberDanger').checked,
     lineGroup: document.getElementById('memberLineGroup').checked,
     note: document.getElementById('memberNote').value.trim(),
+    updatedAt: new Date().toISOString(),
   };
   const arr = getMembers();
   if (id) {
@@ -3037,23 +3038,55 @@ async function syncMembersFromTeamJson(opts) {
     const localByCode = {};
     local.forEach(m => { if (m.accessCode) localByCode[m.accessCode] = m; });
 
+    // updatedAt を msec で取得（無効なら 0）
+    const toMs = (iso) => {
+      if (!iso) return 0;
+      const d = new Date(iso);
+      return isNaN(d.getTime()) ? 0 : d.getTime();
+    };
+
     let added = 0;
     let updated = 0;
     const addedNames = [];
+    const updatedNames = [];
+    const SYNC_FIELDS = ['name','phone','region','age','experienceYears','skills','availableDays','truck','dangerousWork','lineGroup','note','email','birthday','status','updatedAt'];
+
     remoteMembers.forEach(rm => {
       if (!rm.accessCode) return;
       const existing = localByCode[rm.accessCode];
       if (existing) {
-        // 既存メンバー: 不足項目だけ補完
-        let changed = false;
-        ['phone','region','age','experienceYears','skills','availableDays','truck','dangerousWork','lineGroup','note','email','birthday','status'].forEach(k => {
-          const isEmpty = (v) => v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0);
-          if (isEmpty(existing[k]) && !isEmpty(rm[k])) {
-            existing[k] = rm[k];
-            changed = true;
+        const localTime  = toMs(existing.updatedAt);
+        const remoteTime = toMs(rm.updatedAt);
+
+        if (remoteTime > localTime) {
+          // team.json の方が新しい → 全項目を上書き（メンバー編集を反映）
+          let anyChange = false;
+          SYNC_FIELDS.forEach(k => {
+            if (rm[k] !== undefined && rm[k] !== null) {
+              if (JSON.stringify(existing[k]) !== JSON.stringify(rm[k])) anyChange = true;
+              existing[k] = rm[k];
+            }
+          });
+          if (anyChange) {
+            updated++;
+            updatedNames.push(rm.name || existing.name || '?');
           }
-        });
-        if (changed) updated++;
+        } else {
+          // ローカルが新しい/同じ → 空欄だけ補完
+          let changed = false;
+          SYNC_FIELDS.forEach(k => {
+            if (k === 'updatedAt') return;
+            const isEmpty = (v) => v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0);
+            if (isEmpty(existing[k]) && !isEmpty(rm[k])) {
+              existing[k] = rm[k];
+              changed = true;
+            }
+          });
+          if (changed) {
+            updated++;
+            updatedNames.push(rm.name || existing.name || '?');
+          }
+        }
       } else {
         // 新規メンバー: そのまま追加
         local.push({
@@ -3072,7 +3105,8 @@ async function syncMembersFromTeamJson(opts) {
           note: rm.note || '',
           email: rm.email || '',
           birthday: rm.birthday || '',
-          status: rm.status || 'active'
+          status: rm.status || 'active',
+          updatedAt: rm.updatedAt || new Date().toISOString()
         });
         added++;
         addedNames.push(rm.name || '名前未取得');
@@ -3102,8 +3136,8 @@ async function syncMembersFromTeamJson(opts) {
 
       alert(msg);
     } else {
-      // 静かに新規取り込み通知（ヘッダーバナー）
-      if (added > 0) showSilentSyncNotice(added, addedNames);
+      // 静かに新規 / 更新通知（ヘッダーバナー）
+      if (added > 0 || updated > 0) showSilentSyncNotice(added, updated, addedNames, updatedNames);
     }
     return { added, updated, total: remoteMembers.length };
   } catch (e) {
@@ -3118,8 +3152,8 @@ async function syncMembersFromTeamJson(opts) {
   }
 }
 
-// 起動時のサイレント同期で新規メンバーがあった時のバナー通知
-function showSilentSyncNotice(added, names) {
+// 起動時のサイレント同期で新規/更新メンバーがあった時のバナー通知
+function showSilentSyncNotice(added, updated, addedNames, updatedNames) {
   let banner = document.getElementById('silentSyncBanner');
   if (!banner) {
     banner = document.createElement('div');
@@ -3128,10 +3162,17 @@ function showSilentSyncNotice(added, names) {
     banner.addEventListener('click', () => banner.style.display = 'none');
     document.body.appendChild(banner);
   }
-  const nameStr = names.slice(0, 3).join('、') + (names.length > 3 ? ` ほか${names.length-3}名` : '');
-  banner.innerHTML = `🌿 新規メンバー <b>${added}人</b> を取り込みました（${escapeHtml(nameStr)}） <span style="opacity:.7;margin-left:8px;">タップで閉じる</span>`;
+  const parts = [];
+  if (added > 0) {
+    const nameStr = addedNames.slice(0, 3).join('、') + (addedNames.length > 3 ? ` ほか${addedNames.length-3}名` : '');
+    parts.push(`🆕 新規 <b>${added}人</b>（${escapeHtml(nameStr)}）`);
+  }
+  if (updated > 0) {
+    const nameStr = updatedNames.slice(0, 3).join('、') + (updatedNames.length > 3 ? ` ほか${updatedNames.length-3}名` : '');
+    parts.push(`✏️ 変更 <b>${updated}人</b>（${escapeHtml(nameStr)}）`);
+  }
+  banner.innerHTML = `🌿 ${parts.join(' / ')} <span style="opacity:.7;margin-left:8px;">タップで閉じる</span>`;
   banner.style.display = 'block';
-  // 8秒後に自動で閉じる
   setTimeout(() => { if (banner) banner.style.display = 'none'; }, 8000);
 }
 
