@@ -2959,7 +2959,26 @@ async function exportTeamData(opts) {
   allMembers.forEach(m => { memberMap[m.id] = m.name; });
   const members = allMembers
     .filter(m => m.accessCode && /^\d{6}$/.test(m.accessCode))
-    .map(m => ({ id: m.id, name: m.name, accessCode: m.accessCode }));
+    .map(m => ({
+      id: m.id,
+      name: m.name,
+      accessCode: m.accessCode,
+      phone: m.phone || '',
+      region: m.region || '',
+      age: typeof m.age === 'number' ? m.age : (parseInt(m.age) || 0),
+      experienceYears: typeof m.experienceYears === 'number' ? m.experienceYears : (parseInt(m.experienceYears) || 0),
+      skills: Array.isArray(m.skills) ? m.skills : [],
+      availableDays: Array.isArray(m.availableDays) ? m.availableDays : [],
+      truck: !!m.truck,
+      dangerousWork: !!m.dangerousWork,
+      lineGroup: !!m.lineGroup,
+      note: m.note || '',
+      email: m.email || '',
+      birthday: m.birthday || '',
+      status: m.status || 'active',
+      registeredAt: m.registeredAt || null,
+      updatedAt: m.updatedAt || null
+    }));
 
   if (members.length === 0) {
     alert('アクセスコード付きのメンバーがいません。\n「人員」タブでメンバーを編集して、アクセスコードを発行してください。');
