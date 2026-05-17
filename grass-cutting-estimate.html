@@ -959,6 +959,7 @@ function getEstimates() {
 }
 function putEstimates(arr) {
   localStorage.setItem('mowingEstimatesV3', JSON.stringify(arr));
+  if (typeof scheduleAutoExportTeam === 'function') scheduleAutoExportTeam();
 }
 
 // ============================================================
@@ -2021,7 +2022,10 @@ function getMembers() {
   if (m) return m;
   return [{ id: 'm1', name: '自分', skills: ['karibaraiki','homen','hammer'], status: 'active' }];
 }
-function putMembers(arr) { localStorage.setItem('mowingMembers', JSON.stringify(arr)); }
+function putMembers(arr) {
+  localStorage.setItem('mowingMembers', JSON.stringify(arr));
+  if (typeof scheduleAutoExportTeam === 'function') scheduleAutoExportTeam();
+}
 
 function renderMembers() {
   const members = getMembers();
@@ -2928,10 +2932,12 @@ function maskEstimateForTeam(e, memberMap) {
   };
 }
 
-async function exportTeamData() {
+async function exportTeamData(opts) {
+  opts = opts || {};
+  const silent = opts.silent === true;
   const s = JSON.parse(localStorage.getItem('mowingGitHubSettings') || '{}');
   if (!s.token) {
-    alert('先に「☁️ GitHub バックアップ」セクションで Token を設定してください。\n同じTokenをメンバー公開にも使います。');
+    if (!silent) alert('先に「☁️ GitHub バックアップ」セクションで Token を設定してください。\n同じTokenをメンバー公開にも使います。');
     return;
   }
 
@@ -2994,12 +3000,32 @@ async function exportTeamData() {
     }
     const now = new Date().toLocaleString('ja-JP');
     localStorage.setItem('teamLastExport', now);
-    document.getElementById('teamLastExport').textContent = now + ' ✓';
-    alert(`✅ メンバー用ページを更新しました\n\nメンバー: ${members.length}人\n公開案件: ${estimates.length}件\n\n反映まで1〜2分かかります（Cloudflare自動再ビルド）。`);
+    document.getElementById('teamLastExport').textContent = now + (silent ? ' ✓ 自動公開' : ' ✓');
+    if (!silent) alert(`✅ メンバー用ページを更新しました\n\nメンバー: ${members.length}人\n公開案件: ${estimates.length}件\n\n反映まで1〜2分かかります（Cloudflare自動再ビルド）。`);
   } catch (e) {
     document.getElementById('teamLastExport').textContent = '❌ エラー';
-    alert('公開失敗: ' + e.message + '\n\nTokenの権限を確認してください（kusakari-siteへの書き込み権限が必要）。');
+    if (!silent) alert('公開失敗: ' + e.message + '\n\nTokenの権限を確認してください（kusakari-siteへの書き込み権限が必要）。');
   }
+}
+
+// ============================================================
+// 🤖 自動公開（変更を検知して5秒後に自動でメンバー用ページ更新）
+// ============================================================
+let _autoExportTimer = null;
+function scheduleAutoExportTeam() {
+  // Token未設定なら自動公開はせず静かにスキップ
+  const s = JSON.parse(localStorage.getItem('mowingGitHubSettings') || '{}');
+  if (!s.token) return;
+
+  const statusEl = document.getElementById('teamLastExport');
+  if (statusEl) statusEl.textContent = '変更検知…5秒後に自動公開';
+
+  if (_autoExportTimer) clearTimeout(_autoExportTimer);
+  _autoExportTimer = setTimeout(() => {
+    _autoExportTimer = null;
+    if (statusEl) statusEl.textContent = '自動公開中…';
+    exportTeamData({ silent: true });
+  }, 5000);
 }
 
 // ============================================================
