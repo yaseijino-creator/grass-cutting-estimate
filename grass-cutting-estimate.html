@@ -569,14 +569,7 @@
     </div>
   </div>
 
-  <div class="card">
-    <h2>⚙️ データ管理</h2>
-    <button class="btn btn-secondary" onclick="exportCSV()">📤 CSVエクスポート</button>
-    <button class="btn btn-secondary" onclick="backupJSON()">📦 JSONバックアップ</button>
-    <input type="file" id="restoreFile" style="display:none" accept=".json" onchange="restoreJSON(event)">
-    <button class="btn btn-secondary" onclick="document.getElementById('restoreFile').click()">📥 バックアップ復元</button>
-    <button class="btn btn-danger" onclick="clearAllData()">🗑 全データ削除</button>
-  </div>
+  <!-- データ管理セクションは削除（CSV出力・バックアップ・全削除はClaude側で対応） -->
 
   <div class="card" style="background:#fef9e7;border:1.5px solid #f0d870;">
     <h2>🔄 メンバー一覧を team.json から同期 <span class="hint">Apps Script が自動登録した新メンバーを取り込み</span></h2>
@@ -614,44 +607,47 @@
     </details>
   </div>
 
-  <div class="card">
-    <h2>☁️ GitHub バックアップ <span class="hint">データを失わない安心設定</span></h2>
-    <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
-      ブラウザのlocalStorageは消える可能性があります。GitHubに保存することで、いつでも復元可能になります。<br>
-      <b>初回のみ</b> Personal Access Token (PAT) の登録が必要です。
-    </p>
-    <div class="field">
-      <label>GitHub Token (PAT)</label>
-      <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxx (一度入力すれば保存されます)">
+  <details class="card" style="padding:0;">
+    <summary style="padding:14px;cursor:pointer;font-weight:700;color:#666;font-size:14px;">
+      ⚙️ 詳細設定（通常は触らなくてOK）
+    </summary>
+    <div style="padding:0 14px 14px;">
+      <h2 style="font-size:15px;margin-top:14px;">☁️ GitHub 連携設定</h2>
+      <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
+        メンバー用ページへの自動公開に使う Token を保存します。<br>
+        <b>初回のみ</b> Token を入れて「設定を保存」を押してください。以降は自動で動きます。
+      </p>
+      <div class="field">
+        <label>GitHub Token (PAT)</label>
+        <input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxx (一度入力すれば保存されます)">
+      </div>
+      <div class="field">
+        <label>リポジトリ (owner/repo)</label>
+        <input type="text" id="ghRepo" placeholder="例: yaseijino-creator/kusakari-site">
+      </div>
+      <div class="field">
+        <label>ファイルパス</label>
+        <input type="text" id="ghPath" value="data/backup.json" placeholder="例: data/backup.json">
+      </div>
+      <div id="ghStatus" style="font-size:12px;color:#555;padding:8px;background:#f7faf7;border-radius:6px;margin-bottom:10px;">
+        最終保存: <span id="ghLastSync">未設定</span>
+      </div>
+      <button class="btn btn-primary" onclick="saveGitHubSettings()">💾 設定を保存</button>
+      <details style="margin-top:10px;font-size:12px;">
+        <summary style="cursor:pointer;color:#2d5a3d;font-weight:600;">📖 GitHub Token の作成方法（クリックで展開）</summary>
+        <ol style="padding:10px 20px;line-height:1.8;background:#fffbe6;border-radius:6px;margin-top:6px;">
+          <li><a href="https://github.com/settings/tokens?type=beta" target="_blank">https://github.com/settings/tokens?type=beta</a> を開く</li>
+          <li>「Generate new token」をクリック</li>
+          <li>Token name: <code>kusakari-data</code> など</li>
+          <li>Expiration: <b>No expiration</b> または好きな期間</li>
+          <li>Repository access: <b>Only select repositories</b> → kusakari-site を選択</li>
+          <li>Permissions → Repository permissions:<br>
+            <b>Contents: Read and write</b> に設定</li>
+          <li>「Generate token」→ 出てきた <code>github_pat_xxxxx</code> をコピーして上の欄に貼り付け</li>
+        </ol>
+      </details>
     </div>
-    <div class="field">
-      <label>リポジトリ (owner/repo)</label>
-      <input type="text" id="ghRepo" placeholder="例: yaseijino-creator/kusakari-site">
-    </div>
-    <div class="field">
-      <label>ファイルパス</label>
-      <input type="text" id="ghPath" value="data/backup.json" placeholder="例: data/backup.json">
-    </div>
-    <div id="ghStatus" style="font-size:12px;color:#555;padding:8px;background:#f7faf7;border-radius:6px;margin-bottom:10px;">
-      最終保存: <span id="ghLastSync">未設定</span>
-    </div>
-    <button class="btn btn-primary" onclick="saveGitHubSettings()">💾 設定を保存</button>
-    <button class="btn btn-warn" onclick="syncToGitHub()">🔼 GitHubに保存</button>
-    <button class="btn btn-secondary" onclick="loadFromGitHub()">🔽 GitHubから読込</button>
-    <details style="margin-top:10px;font-size:12px;">
-      <summary style="cursor:pointer;color:#2d5a3d;font-weight:600;">📖 GitHub Token の作成方法（クリックで展開）</summary>
-      <ol style="padding:10px 20px;line-height:1.8;background:#fffbe6;border-radius:6px;margin-top:6px;">
-        <li><a href="https://github.com/settings/tokens?type=beta" target="_blank">https://github.com/settings/tokens?type=beta</a> を開く</li>
-        <li>「Generate new token」をクリック</li>
-        <li>Token name: <code>kusakari-data</code> など</li>
-        <li>Expiration: <b>No expiration</b> または好きな期間</li>
-        <li>Repository access: <b>Only select repositories</b> → kusakari-site を選択</li>
-        <li>Permissions → Repository permissions:<br>
-          <b>Contents: Read and write</b> に設定</li>
-        <li>「Generate token」→ 出てきた <code>github_pat_xxxxx</code> をコピーして上の欄に貼り付け</li>
-      </ol>
-    </details>
-  </div>
+  </details>
 </section>
 
 <!-- ============================ 設定 TAB ============================ -->
@@ -2018,6 +2014,13 @@ renderData();
 // 起動時とその後60秒ごとに更新チェック
 checkForUpdate();
 setInterval(checkForUpdate, 60000);
+
+// 起動時にメンバー一覧を team.json から自動同期（静かに）
+setTimeout(() => {
+  if (typeof syncMembersFromTeamJson === 'function') {
+    syncMembersFromTeamJson({ silent: true });
+  }
+}, 800);
 
 // ============================================================
 // 👥 メンバー管理
