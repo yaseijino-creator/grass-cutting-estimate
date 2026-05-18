@@ -571,21 +571,6 @@
 
   <!-- データ管理セクションは削除（CSV出力・バックアップ・全削除はClaude側で対応） -->
 
-  <div class="card" style="background:#fef9e7;border:1.5px solid #f0d870;">
-    <h2>🔄 メンバー一覧を team.json から同期 <span class="hint">Apps Script が自動登録した新メンバーを取り込み</span></h2>
-    <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
-      Google フォームで登録された新メンバーは、Apps Script が自動で team.json に追加します（C案）。<br>
-      このボタンを押すと、team.json から最新メンバー情報を取得して見積ツールに取り込みます。<br>
-      <b>案件割り当てに新メンバーを使えるようにする時はこのボタンを押してください。</b>
-    </p>
-    <input type="hidden" id="formSheetUrl">
-    <div id="syncMembersStatus" style="font-size:12px;color:#555;padding:8px;background:#fff;border-radius:6px;margin-bottom:10px;">
-      最終同期: <span id="lastSyncMembers">未実施</span>
-    </div>
-    <button class="btn btn-primary" onclick="syncMembersFromTeamJson()">🔄 メンバー一覧を同期</button>
-    <div id="pendingAppsArea" style="margin-top:14px;"></div>
-  </div>
-
   <div class="card" style="background:#f0f8f0;border:1.5px solid #a5d6a7;">
     <h2>👥 メンバー用ページに公開 <span class="hint">案件・スケジュールをメンバーに共有</span></h2>
     <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
@@ -605,6 +590,21 @@
         <b>アクセス</b>: 各メンバーのページでアクセスコード(6桁)を入れる。コードは「人員」タブのメンバー編集で確認・コピー可能。
       </div>
     </details>
+  </div>
+
+  <div class="card" style="background:#fef9e7;border:1.5px solid #f0d870;">
+    <h2>🔄 メンバー一覧を team.json から同期 <span class="hint">Apps Script が自動登録した新メンバーを取り込み</span></h2>
+    <p class="note" style="font-size:12px;line-height:1.7;margin-bottom:10px;">
+      Google フォームで登録された新メンバーは、Apps Script が自動で team.json に追加します（C案）。<br>
+      このボタンを押すと、team.json から最新メンバー情報を取得して見積ツールに取り込みます。<br>
+      <b>案件割り当てに新メンバーを使えるようにする時はこのボタンを押してください。</b>
+    </p>
+    <input type="hidden" id="formSheetUrl">
+    <div id="syncMembersStatus" style="font-size:12px;color:#555;padding:8px;background:#fff;border-radius:6px;margin-bottom:10px;">
+      最終同期: <span id="lastSyncMembers">未実施</span>
+    </div>
+    <button class="btn btn-primary" onclick="syncMembersFromTeamJson()">🔄 メンバー一覧を同期</button>
+    <div id="pendingAppsArea" style="margin-top:14px;"></div>
   </div>
 
   <details class="card" style="padding:0;">
@@ -777,10 +777,24 @@
     <button class="action-btn secondary" style="padding:8px;font-size:13px;margin-top:0;" onclick="addAssignRow()">＋ 担当を追加</button>
     <div id="assignSummary" style="background:#fffbe6;border-left:4px solid #f0c040;padding:10px 12px;border-radius:6px;margin-top:10px;font-size:13px;line-height:1.8;"></div>
     <div id="assignWarning" style="display:none;background:#fdecec;border-left:4px solid #c03050;padding:8px 12px;border-radius:6px;margin-top:8px;font-size:12px;color:#a02040;"></div>
-    <label style="display:flex;align-items:center;gap:8px;background:#e8f4ff;border:1px solid #80b4e0;padding:10px 12px;border-radius:8px;margin-top:10px;font-size:14px;cursor:pointer;">
-      <input type="checkbox" id="assignRecruiting" style="width:18px;height:18px;">
-      📢 隊員に募集を出す（隊員ページの「案件」タブに表示される）
-    </label>
+    <div style="background:#e8f4ff;border:1px solid #80b4e0;padding:10px 12px;border-radius:8px;margin-top:10px;font-size:14px;">
+      <div style="font-weight:700;margin-bottom:8px;">📢 隊員に募集を出す機械と人数</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:#2d5a3d;font-weight:600;margin-bottom:4px;">🌿 仮払機</div>
+          <input type="number" id="recruitCount-karibaraiki" value="0" min="0" max="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:16px;text-align:center;">
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:#2d5a3d;font-weight:600;margin-bottom:4px;">🚜 方面草刈機</div>
+          <input type="number" id="recruitCount-homen" value="0" min="0" max="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:16px;text-align:center;">
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:12px;color:#2d5a3d;font-weight:600;margin-bottom:4px;">⚙️ ハンマーモア</div>
+          <input type="number" id="recruitCount-hammer" value="0" min="0" max="10" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;font-size:16px;text-align:center;">
+        </div>
+      </div>
+      <div style="font-size:11px;color:#666;margin-top:6px;">0 = 募集しない、1人以上で隊員ページに表示</div>
+    </div>
     <button class="action-btn" style="margin-top:14px;" onclick="saveAssignment()">💾 担当を保存</button>
     <button class="action-btn warn" onclick="autoAssignMembers()">⚡ 必要機械から自動割当</button>
     <button class="action-btn secondary" onclick="closeAssignModal()">閉じる</button>
@@ -2470,8 +2484,14 @@ function openAssignModal(estId) {
     assignState.rows = [];
   }
   document.getElementById('assignEstId').value = estId;
-  const recruitingChk = document.getElementById('assignRecruiting');
-  if (recruitingChk) recruitingChk.checked = e.recruiting === true;
+  // 機械別募集人数を読み込み
+  const counts = e.recruitingByMachine || {};
+  const rk = document.getElementById('recruitCount-karibaraiki');
+  const rh = document.getElementById('recruitCount-homen');
+  const rm = document.getElementById('recruitCount-hammer');
+  if (rk) rk.value = counts.karibaraiki || 0;
+  if (rh) rh.value = counts.homen || 0;
+  if (rm) rm.value = counts.hammer || 0;
   const machineList = (e.machines||[]).filter(m => m.hours > 0).map(m => `${m.name} ${m.hours.toFixed(1)}h (${(e.machineAreas?.[m.key])?.toFixed(0) || '?'}㎡)`).join(' / ') || '機械情報なし';
   const totalArea = e.area || e.totalArea || 0;
   document.getElementById('assignInfo').innerHTML = `
@@ -2628,9 +2648,15 @@ function saveAssignment() {
   });
   // 旧フォーマットも互換のため保存
   arr[idx].assignedMembers = [...new Set(assignState.rows.map(r => r.memberId))];
-  // 募集中フラグ（隊員ページの「案件」タブに表示するか）
-  const recruitingChk = document.getElementById('assignRecruiting');
-  arr[idx].recruiting = !!(recruitingChk && recruitingChk.checked);
+  // 機械別の募集人数（0以上）
+  const recruitingByMachine = {
+    karibaraiki: Math.max(0, parseInt(document.getElementById('recruitCount-karibaraiki')?.value) || 0),
+    homen:       Math.max(0, parseInt(document.getElementById('recruitCount-homen')?.value) || 0),
+    hammer:      Math.max(0, parseInt(document.getElementById('recruitCount-hammer')?.value) || 0)
+  };
+  arr[idx].recruitingByMachine = recruitingByMachine;
+  // 互換のため boolean フラグも維持（いずれか1機械が1人以上で true）
+  arr[idx].recruiting = (recruitingByMachine.karibaraiki + recruitingByMachine.homen + recruitingByMachine.hammer) > 0;
   putEstimates(arr);
   closeAssignModal();
   renderRecordList();
@@ -2943,7 +2969,8 @@ function maskEstimateForTeam(e, memberMap) {
     scheduledDate: e.scheduledDate || e.workDate || null,
     totalArea,
     assignments,
-    recruiting: e.recruiting === true
+    recruiting: e.recruiting === true,
+    recruitingByMachine: e.recruitingByMachine || null
   };
 }
 
