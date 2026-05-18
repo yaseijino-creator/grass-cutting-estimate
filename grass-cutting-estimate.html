@@ -2961,6 +2961,14 @@ function maskEstimateForTeam(e, memberMap) {
   const totalArea = e.totalArea ||
     (e.areaRows||[]).reduce((s, r) => s + (parseFloat(r.area) || 0), 0);
 
+  // 機械別の予定時間・委託費（募集中カードでの表示用）
+  const machinesPlan = (e.outsrcByMachine || []).map(m => ({
+    key: m.key,
+    hours: parseFloat(m.hours) || 0,
+    outsrc: parseFloat(m.outsrc) || 0,
+    area: (e.machineAreas && e.machineAreas[m.key]) ? parseFloat(e.machineAreas[m.key]) || 0 : 0
+  }));
+
   return {
     id: e.id,
     customerLabel,
@@ -2970,7 +2978,8 @@ function maskEstimateForTeam(e, memberMap) {
     totalArea,
     assignments,
     recruiting: e.recruiting === true,
-    recruitingByMachine: e.recruitingByMachine || null
+    recruitingByMachine: e.recruitingByMachine || null,
+    machinesPlan
   };
 }
 
