@@ -3581,7 +3581,7 @@ loadGitHubSettings();
 // ============================================================
 // 📍 地図で面積を測る (Leaflet + OpenStreetMap)
 // ============================================================
-let _mapMeasure = { map: null, points: [], markers: [], polygon: null };
+let _mapMeasure = { map: null, points: [], markers: [], polygon: null, osmLayer: null, gsiLayer: null, currentLayerName: 'photo', gpsWatchId: null, gpsAccuracyCircle: null };
 
 function openMapMeasure() {
   const bg = document.getElementById('mapMeasureBg');
@@ -3592,16 +3592,26 @@ function openMapMeasure() {
     // 吉賀町 中心
     const defaultCenter = [34.4178, 131.8244];
     const map = L.map('mapMeasureMap').setView(defaultCenter, 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+    // OpenStreetMap (通常地図)
+    _mapMeasure.osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap',
       maxZoom: 19
-    }).addTo(map);
+    });
+
+    // 国土地理院 全国最新写真 (航空写真)
+    _mapMeasure.gsiLayer = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
+      attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル(写真)</a>',
+      maxZoom: 18
+    });
+
+    // 初期は航空写真
+    _mapMeasure.gsiLayer.addTo(map);
 
     map.on('click', e => {
-      _mapMeasure.points.push(e.latlng);
-      const marker = L.circleMarker(e.latlng, { radius: 6, color: '#c03050', fillColor: '#fff', fillOpacity: 1, weight: 3 }).addTo(map);
-      _mapMeasure.markers.push(marker);
-      _redrawMapPolygon();
+      // GPS記録中はクリック追加を無効化（GPSと混ざらないように）
+      if (_mapMeasure.gpsWatchId !== null) return;
+      _addPointToMap(e.latlng, '#c03050');
     });
 
     _mapMeasure.map = map;
@@ -3609,13 +3619,111 @@ function openMapMeasure() {
     // 現在地に飛ぶ (権限取れたら)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(pos => {
-        map.setView([pos.coords.latitude, pos.coords.longitude], 17);
+        map.setView([pos.coords.latitude, pos.coords.longitude], 18);
       }, () => {}, { timeout: 5000 });
     }
   }
 
   // 地図サイズを再計算 (モーダル表示後)
   setTimeout(() => _mapMeasure.map.invalidateSize(), 100);
+}
+
+function _addPointToMap(latlng, color) {
+  _mapMeasure.points.push(latlng);
+  const marker = L.circleMarker(latlng, { radius: 6, color: color || '#c03050', fillColor: '#fff', fillOpacity: 1, weight: 3 }).addTo(_mapMeasure.map);
+  _mapMeasure.markers.push(marker);
+  _redrawMapPolygon();
+}
+
+function toggleMapLayer() {
+  const map = _mapMeasure.map;
+  const btn = document.getElementById('mapLayerBtn');
+  if (_mapMeasure.currentLayerName === 'photo') {
+    map.removeLayer(_mapMeasure.gsiLayer);
+    _mapMeasure.osmLayer.addTo(map);
+    _mapMeasure.currentLayerName = 'osm';
+    btn.textContent = '🛰 航空写真';
+  } else {
+    map.removeLayer(_mapMeasure.osmLayer);
+    _mapMeasure.gsiLayer.addTo(map);
+    _mapMeasure.currentLayerName = 'photo';
+    btn.textContent = '🗺 通常地図';
+  }
+}
+
+// GPS で歩いて測る (現場の境界を歩いて回る用)
+function toggleGpsTracking() {
+  if (_mapMeasure.gpsWatchId !== null) {
+    _stopGpsTracking();
+  } else {
+    _startGpsTracking();
+  }
+}
+
+function _startGpsTracking() {
+  if (!navigator.geolocation) {
+    alert('GPSが使えない端末です。');
+    return;
+  }
+  const btn = document.getElementById('gpsBtn');
+  const status = document.getElementById('gpsStatus');
+  btn.textContent = '⏹ GPS記録停止';
+  btn.style.background = '#c03050';
+  status.style.display = 'block';
+  status.textContent = '📡 GPS取得中...';
+
+  let lastPoint = null;
+  const MIN_DISTANCE_M = 2;   // 2m以上動いたら新規点
+  const MAX_ACCURACY_M = 30;  // 精度30m以上の読みは除外
+
+  _mapMeasure.gpsWatchId = navigator.geolocation.watchPosition(pos => {
+    const acc = pos.coords.accuracy;
+    const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
+
+    // 精度サークル更新
+    if (_mapMeasure.gpsAccuracyCircle) _mapMeasure.map.removeLayer(_mapMeasure.gpsAccuracyCircle);
+    _mapMeasure.gpsAccuracyCircle = L.circle(latlng, { radius: acc, color: '#1e88e5', fillOpacity: 0.1, weight: 1 }).addTo(_mapMeasure.map);
+
+    // 精度悪いのはスキップ
+    if (acc > MAX_ACCURACY_M) {
+      status.textContent = `📡 GPS取得中 (精度 ${Math.round(acc)}m / 範囲外) 待機中...`;
+      return;
+    }
+
+    // 動いてない時は追加しない
+    if (lastPoint && lastPoint.distanceTo(latlng) < MIN_DISTANCE_M) {
+      status.textContent = `📡 GPS記録中: ${_mapMeasure.points.length}点 / 精度 ${Math.round(acc)}m (待機中)`;
+      return;
+    }
+
+    _addPointToMap(latlng, '#1e88e5');
+    _mapMeasure.map.setView(latlng);
+    lastPoint = latlng;
+    status.textContent = `📡 GPS記録中: ${_mapMeasure.points.length}点 / 精度 ${Math.round(acc)}m`;
+  }, err => {
+    alert('GPS取得エラー: ' + err.message + '\n\nブラウザの位置情報許可を確認してください。');
+    _stopGpsTracking();
+  }, {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
+  });
+}
+
+function _stopGpsTracking() {
+  if (_mapMeasure.gpsWatchId !== null) {
+    navigator.geolocation.clearWatch(_mapMeasure.gpsWatchId);
+    _mapMeasure.gpsWatchId = null;
+  }
+  if (_mapMeasure.gpsAccuracyCircle) {
+    _mapMeasure.map.removeLayer(_mapMeasure.gpsAccuracyCircle);
+    _mapMeasure.gpsAccuracyCircle = null;
+  }
+  const btn = document.getElementById('gpsBtn');
+  const status = document.getElementById('gpsStatus');
+  btn.textContent = '📡 GPSで歩いて測る';
+  btn.style.background = '#1e88e5';
+  status.style.display = 'none';
 }
 
 function closeMapMeasure() {
@@ -3663,6 +3771,8 @@ function undoMapMeasurePoint() {
 }
 
 function clearMapMeasure() {
+  // GPS記録中なら止める
+  if (_mapMeasure.gpsWatchId !== null) _stopGpsTracking();
   _mapMeasure.points = [];
   _mapMeasure.markers.forEach(m => _mapMeasure.map.removeLayer(m));
   _mapMeasure.markers = [];
@@ -3711,10 +3821,14 @@ async function searchMapMeasureLocation() {
     <div style="padding:8px 14px;background:#fff;border-bottom:1px solid #ddd;">
       <input id="mapMeasureSearch" type="text" placeholder="例: 吉賀町木部谷 / 益田市 で場所検索"
              onkeydown="if(event.key==='Enter'){event.preventDefault();searchMapMeasureLocation();}">
-      <div style="font-size:11px;color:#777;line-height:1.5;">
-        ① 地図を場所まで動かす（ピンチで拡大）<br>
-        ② 草刈り範囲をタップで囲む（3 点以上）<br>
-        ③ ✓ で面積を見積もりに反映
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;">
+        <button id="mapLayerBtn" class="map-btn" style="background:#37474f;color:#fff;padding:8px;" onclick="toggleMapLayer()">🗺 通常地図</button>
+        <button id="gpsBtn" class="map-btn" style="background:#1e88e5;color:#fff;padding:8px;" onclick="toggleGpsTracking()">📡 GPSで歩いて測る</button>
+      </div>
+      <div id="gpsStatus" style="display:none;margin-top:6px;padding:6px 10px;background:#e3f2fd;border-radius:6px;font-size:12px;color:#1565c0;text-align:center;"></div>
+      <div style="font-size:11px;color:#777;line-height:1.5;margin-top:6px;">
+        🔘 タップで囲む / 📡 GPSで歩いて測る（境界を一周）<br>
+        🛰 航空写真は国土地理院、日本の田舎でも高解像度
       </div>
     </div>
     <div id="mapMeasureMap"></div>
