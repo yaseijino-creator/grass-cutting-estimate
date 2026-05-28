@@ -2941,8 +2941,10 @@ function maskEstimateForTeam(e, memberMap) {
       .replace(/[\d０-９]+号.*$/, '')
       .trim();
     if (!addressArea) addressArea = addr.slice(0, 10);
-  } else if (e.site) {
-    addressArea = '';
+  }
+  // 住所未入力の場合はエリア名（吉賀町○○ 等）をフォールバック
+  if (!addressArea && e.siteAreaText) {
+    addressArea = String(e.siteAreaText).trim();
   }
 
   // 現場の作業注意 (個人メモは除外)
