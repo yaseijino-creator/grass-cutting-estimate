@@ -3581,7 +3581,20 @@ loadGitHubSettings();
 // ============================================================
 // 📍 地図で面積を測る (Leaflet + OpenStreetMap)
 // ============================================================
-let _mapMeasure = { map: null, points: [], markers: [], polygon: null, osmLayer: null, gsiLayer: null, currentLayerName: 'photo', gpsWatchId: null, gpsAccuracyCircle: null };
+let _mapMeasure = {
+  map: null,
+  points: [],
+  markers: [],
+  polygon: null,
+  savedPolygons: [],   // 保存済みエリアの polygon オブジェクト一覧
+  savedAreaSum: 0,     // 保存済みエリアの合計面積
+  osmLayer: null,
+  gsiLayer: null,
+  currentLayerName: 'photo',
+  gpsWatchId: null,
+  gpsAccuracyCircle: null,
+  gpsLastPos: null     // 直近のGPS位置（手動追加用）
+};
 
 function openMapMeasure() {
   const bg = document.getElementById('mapMeasureBg');
@@ -3676,33 +3689,36 @@ function _startGpsTracking() {
   status.textContent = '📡 GPS取得中...';
 
   let lastPoint = null;
-  const MIN_DISTANCE_M = 2;   // 2m以上動いたら新規点
-  const MAX_ACCURACY_M = 30;  // 精度30m以上の読みは除外
+  const MIN_DISTANCE_M = 1;   // 1m以上動いたら新規点（小さい範囲対応）
+  const MAX_ACCURACY_M = 50;  // 精度50m以上の読みは除外（家の近くは精度落ちやすいので緩めに）
 
   _mapMeasure.gpsWatchId = navigator.geolocation.watchPosition(pos => {
     const acc = pos.coords.accuracy;
     const latlng = L.latLng(pos.coords.latitude, pos.coords.longitude);
+    // 直近GPS位置を保存（手動追加ボタン用）
+    _mapMeasure.gpsLastPos = latlng;
 
     // 精度サークル更新
     if (_mapMeasure.gpsAccuracyCircle) _mapMeasure.map.removeLayer(_mapMeasure.gpsAccuracyCircle);
     _mapMeasure.gpsAccuracyCircle = L.circle(latlng, { radius: acc, color: '#1e88e5', fillOpacity: 0.1, weight: 1 }).addTo(_mapMeasure.map);
+    // 中心も追従
+    _mapMeasure.map.setView(latlng);
 
-    // 精度悪いのはスキップ
+    // 精度悪いのはスキップ（手動追加ボタンで補えるよう、警告だけ）
     if (acc > MAX_ACCURACY_M) {
-      status.textContent = `📡 GPS取得中 (精度 ${Math.round(acc)}m / 範囲外) 待機中...`;
+      status.innerHTML = `📡 精度 ${Math.round(acc)}m （まだ悪い）<br><span style="font-size:11px;">下の「📍 今の位置を追加」で手動でも打てます</span>`;
       return;
     }
 
     // 動いてない時は追加しない
     if (lastPoint && lastPoint.distanceTo(latlng) < MIN_DISTANCE_M) {
-      status.textContent = `📡 GPS記録中: ${_mapMeasure.points.length}点 / 精度 ${Math.round(acc)}m (待機中)`;
+      status.innerHTML = `📡 GPS記録中: ${_mapMeasure.points.length}点 / 精度 ${Math.round(acc)}m<br><span style="font-size:11px;">じっとしてる時は点を打ちません</span>`;
       return;
     }
 
     _addPointToMap(latlng, '#1e88e5');
-    _mapMeasure.map.setView(latlng);
     lastPoint = latlng;
-    status.textContent = `📡 GPS記録中: ${_mapMeasure.points.length}点 / 精度 ${Math.round(acc)}m`;
+    status.innerHTML = `📡 GPS記録中: <b>${_mapMeasure.points.length}点</b> / 精度 ${Math.round(acc)}m`;
   }, err => {
     alert('GPS取得エラー: ' + err.message + '\n\nブラウザの位置情報許可を確認してください。');
     _stopGpsTracking();
@@ -3711,6 +3727,15 @@ function _startGpsTracking() {
     timeout: 10000,
     maximumAge: 0
   });
+}
+
+// GPS記録中、現在のGPS位置を手動で点に追加（精度フィルタを無視）
+function addCurrentGpsPoint() {
+  if (!_mapMeasure.gpsLastPos) {
+    alert('GPS位置がまだ取れていません。\n📡 ボタンで GPS を開始して数秒待ってからやり直してください。');
+    return;
+  }
+  _addPointToMap(_mapMeasure.gpsLastPos, '#ff9800');
 }
 
 function _stopGpsTracking() {
@@ -3741,10 +3766,43 @@ function _redrawMapPolygon() {
   } else if (_mapMeasure.points.length === 2) {
     _mapMeasure.polygon = L.polyline(_mapMeasure.points, { color: '#2d5a3d', weight: 3 }).addTo(map);
   }
+  // 面積表示の更新（現在＋保存済み）
+  const current = _calcGeodesicArea(_mapMeasure.points);
+  const saved = _mapMeasure.savedAreaSum;
+  const total = current + saved;
+  const el = document.getElementById('mapMeasureArea');
+  if (saved > 0 && current > 0) {
+    el.innerHTML = `現在: <b>${Math.round(current).toLocaleString()}</b>㎡ ＋ 保存済み(${_mapMeasure.savedPolygons.length}エリア): <b>${Math.round(saved).toLocaleString()}</b>㎡<br>合計: <b style="color:#c03050;font-size:22px;">${Math.round(total).toLocaleString()}</b> ㎡`;
+  } else if (saved > 0) {
+    el.innerHTML = `保存済み(${_mapMeasure.savedPolygons.length}エリア)合計: <b style="color:#c03050;font-size:22px;">${Math.round(saved).toLocaleString()}</b> ㎡<br><span style="font-size:12px;color:#777;">別エリアを測ってまた保存できます</span>`;
+  } else if (current > 0) {
+    el.innerHTML = `現在の面積: <b>${Math.round(current).toLocaleString()}</b> ㎡`;
+  } else {
+    el.textContent = '地図をタップして点を追加（3点以上で面積算出）';
+  }
+}
+
+// 現在のエリアを保存して、新しいエリアの測定に進む
+function saveCurrentArea() {
   const area = _calcGeodesicArea(_mapMeasure.points);
-  document.getElementById('mapMeasureArea').textContent = area > 0
-    ? '現在の面積: ' + Math.round(area).toLocaleString() + ' ㎡'
-    : '地図をタップして点を追加（3点以上で面積算出）';
+  if (area < 1) {
+    alert('まず現在のエリアを 3 点以上で囲んでください。');
+    return;
+  }
+  // 現在のポリゴンを「保存済み」にスタイル変更してコピー
+  if (_mapMeasure.polygon) _mapMeasure.map.removeLayer(_mapMeasure.polygon);
+  const saved = L.polygon(_mapMeasure.points, {
+    color: '#558b6e', fillColor: '#a5d6a7', fillOpacity: 0.25, dashArray: '6, 4', weight: 2
+  }).addTo(_mapMeasure.map);
+  _mapMeasure.savedPolygons.push({ polygon: saved, area: area });
+  _mapMeasure.savedAreaSum += area;
+  // マーカーも消す
+  _mapMeasure.markers.forEach(m => _mapMeasure.map.removeLayer(m));
+  _mapMeasure.markers = [];
+  _mapMeasure.points = [];
+  _mapMeasure.polygon = null;
+  _redrawMapPolygon();
+  alert(`✅ ${Math.round(area).toLocaleString()}㎡を保存しました。\n別のエリアを続けて測れます。`);
 }
 
 // 球面ポリゴン面積 (Spherical Excess 公式)
@@ -3776,24 +3834,31 @@ function undoMapMeasurePoint() {
 function clearMapMeasure() {
   // GPS記録中なら止める
   if (_mapMeasure.gpsWatchId !== null) _stopGpsTracking();
+  // 現在のマーカーとポリゴンを消す
   _mapMeasure.points = [];
   _mapMeasure.markers.forEach(m => _mapMeasure.map.removeLayer(m));
   _mapMeasure.markers = [];
   if (_mapMeasure.polygon) { _mapMeasure.map.removeLayer(_mapMeasure.polygon); _mapMeasure.polygon = null; }
+  // 保存済みも消す
+  _mapMeasure.savedPolygons.forEach(s => _mapMeasure.map.removeLayer(s.polygon));
+  _mapMeasure.savedPolygons = [];
+  _mapMeasure.savedAreaSum = 0;
   _redrawMapPolygon();
 }
 
 function applyMapMeasure() {
-  const area = _calcGeodesicArea(_mapMeasure.points);
-  if (area < 1) {
-    alert('まず地図をタップして 3 点以上で囲んでください。');
+  const current = _calcGeodesicArea(_mapMeasure.points);
+  const total = current + _mapMeasure.savedAreaSum;
+  if (total < 1) {
+    alert('まず地図をタップ or GPS で 3 点以上の範囲を囲んでください。');
     return;
   }
-  const m = Math.round(area);
+  const m = Math.round(total);
+  const areaCount = _mapMeasure.savedPolygons.length + (current > 0 ? 1 : 0);
   addAreaRow('平地', m);
   closeMapMeasure();
   clearMapMeasure();
-  alert(`✅ ${m.toLocaleString()}㎡を「平地」として追加しました。\n地形が違う場合は追加された行で変更してください。`);
+  alert(`✅ 合計 ${m.toLocaleString()}㎡（${areaCount}エリア）を「平地」として追加しました。\n地形が違う場合は追加された行で変更してください。`);
 }
 
 async function searchMapMeasureLocation() {
@@ -3837,10 +3902,14 @@ async function searchMapMeasureLocation() {
     <div id="mapMeasureMap"></div>
     <div id="mapMeasureFooter">
       <div id="mapMeasureArea">地図をタップして点を追加（3点以上で面積算出）</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;">
+        <button class="map-btn" style="background:#ff9800;color:#fff;padding:10px;" onclick="addCurrentGpsPoint()">📍 今の位置を追加</button>
+        <button class="map-btn" style="background:#2d7a4f;color:#fff;padding:10px;" onclick="saveCurrentArea()">💾 このエリア保存して次へ</button>
+      </div>
       <div id="mapMeasureControls">
         <button class="map-btn undo" onclick="undoMapMeasurePoint()">↩ 1点戻す</button>
         <button class="map-btn clear" onclick="clearMapMeasure()">✕ 全消去</button>
-        <button class="map-btn apply" onclick="applyMapMeasure()">✓ この面積を使う</button>
+        <button class="map-btn apply" onclick="applyMapMeasure()">✓ 合計を使う</button>
       </div>
     </div>
   </div>
