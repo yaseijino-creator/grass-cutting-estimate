@@ -3591,18 +3591,21 @@ function openMapMeasure() {
   if (!_mapMeasure.map) {
     // 吉賀町 中心
     const defaultCenter = [34.4178, 131.8244];
-    const map = L.map('mapMeasureMap').setView(defaultCenter, 13);
+    // maxZoom を 22 に拡張（タイルが粗くなっても拡大できるように）
+    const map = L.map('mapMeasureMap', { maxZoom: 22 }).setView(defaultCenter, 13);
 
     // OpenStreetMap (通常地図)
     _mapMeasure.osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap',
-      maxZoom: 19
+      maxNativeZoom: 19,
+      maxZoom: 22
     });
 
     // 国土地理院 全国最新写真 (航空写真)
     _mapMeasure.gsiLayer = L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg', {
       attribution: '<a href="https://maps.gsi.go.jp/development/ichiran.html">地理院タイル(写真)</a>',
-      maxZoom: 18
+      maxNativeZoom: 18,
+      maxZoom: 22
     });
 
     // 初期は航空写真
@@ -3616,10 +3619,10 @@ function openMapMeasure() {
 
     _mapMeasure.map = map;
 
-    // 現在地に飛ぶ (権限取れたら)
+    // 現在地に飛ぶ (権限取れたら、いきなり拡大)
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(pos => {
-        map.setView([pos.coords.latitude, pos.coords.longitude], 18);
+        map.setView([pos.coords.latitude, pos.coords.longitude], 20);
       }, () => {}, { timeout: 5000 });
     }
   }
