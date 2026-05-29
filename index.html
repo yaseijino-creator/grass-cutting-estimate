@@ -498,6 +498,10 @@
 
   <div class="card">
     <h2>🛠 使用機械 <span class="hint">担当㎡ か 時間、どちらか入力</span></h2>
+    <div class="note" style="background:#eef5ee;border-left:3px solid #5a7a3a;padding:8px 12px;margin-bottom:10px;font-size:12px;line-height:1.7;color:#3a5c3a;">
+      <b>📐 時間計算の地形補正</b>（料金単価とは独立。同じ面積でも地形の難しさで作業時間が変わります）<br>
+      ・<b>平地</b> ×1.0　・<b>畔・法面</b> ×1.5　・<b>傾斜</b> ×2.0　・<b>急傾斜地</b> ×3.0　・<b>障害物多い</b> ×2.0
+    </div>
     <div class="machine-row head">
       <div>機械</div><div>担当 (㎡)</div><div>時間 (h)</div><div>時給</div>
     </div>
@@ -961,13 +965,15 @@ const DEFAULT_SETTINGS = {
   minPrice: 3000
 };
 
-// 地形別単価（円/㎡ 直接設定）
+// 地形別単価（料金は price、時間計算は machineMult を独立管理）
+// price: 顧客請求の単価（円/㎡）
+// machineMult: 機械作業時間の補正倍率（平地=1.0基準）
 const TERRAIN_OPTIONS = [
-  {name:'平地',       price:11},
-  {name:'畔・法面',   price:18},
-  {name:'傾斜',       price:25},
-  {name:'急傾斜地',   price:40},
-  {name:'障害物多い', price:30}
+  {name:'平地',       price:11, machineMult:1.0},
+  {name:'畔・法面',   price:18, machineMult:1.5},
+  {name:'傾斜',       price:25, machineMult:2.0},
+  {name:'急傾斜地',   price:40, machineMult:3.0},
+  {name:'障害物多い', price:30, machineMult:2.0}
 ];
 
 const TERRAIN_DESC = {
@@ -992,8 +998,42 @@ let state = {
   grass: '中度', grassMult: 1.0,
   dist: '吉賀町', distAdd: 0,
   freq: '単発', freqMult: 1.0,
-  editingId: null
+  editingId: null,
+  editingEstimateId: null  // 見積一覧からロードして編集中の案件ID（上書き保存に使う）
 };
+
+// ============================================================
+// 編集中バナー（見積タブの一番上に表示）
+// ============================================================
+function showEditingBanner(siteName) {
+  let banner = document.getElementById('editingBanner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'editingBanner';
+    banner.style.cssText = 'background:#fff4d6;border:2px solid #d4a73c;border-radius:8px;padding:12px 16px;margin:0 0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;flex-wrap:wrap;';
+    const tab = document.getElementById('tab-estimate');
+    if (tab) tab.insertBefore(banner, tab.firstChild);
+  }
+  banner.innerHTML = `
+    <span style="color:#8a5a00;font-weight:700;">📝 「${(siteName||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}」を編集中（保存すると<u>上書き</u>されます）</span>
+    <button onclick="cancelEditingEstimate()" style="background:#fff;border:1px solid #d4a73c;color:#8a5a00;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;">編集をやめる（新規モードへ）</button>
+  `;
+  banner.style.display = 'flex';
+}
+function hideEditingBanner() {
+  const banner = document.getElementById('editingBanner');
+  if (banner) banner.style.display = 'none';
+}
+function cancelEditingEstimate() {
+  state.editingEstimateId = null;
+  hideEditingBanner();
+  updateSaveButtonLabel();
+}
+function updateSaveButtonLabel() {
+  const saveBtn = document.querySelector('button[onclick="saveEstimate()"]');
+  if (!saveBtn) return;
+  saveBtn.innerHTML = state.editingEstimateId ? '💾 上書き保存' : '💾 見積を保存';
+}
 
 // ============================================================
 // 設定ストア
@@ -1024,8 +1064,8 @@ function addAreaRow(terrainName, area) {
   state.areaRows.push({
     id: 'r' + Date.now() + Math.floor(Math.random()*1000),
     terrain: t.name, price: t.price,
-    // mult は機械時間計算用（price/11 = 平地基準の難易度係数）
-    mult: t.price / 11,
+    // mult は機械時間計算用（machineMult = 平地基準の作業時間倍率）
+    mult: t.machineMult,
     area: area || 0
   });
   renderAreaRows();
@@ -1045,7 +1085,7 @@ function updateAreaRow(id, field, value) {
   if (!row) return;
   if (field === 'terrain') {
     const t = TERRAIN_OPTIONS.find(o => o.name === value);
-    if (t) { row.terrain = t.name; row.price = t.price; row.mult = t.price / 11; }
+    if (t) { row.terrain = t.name; row.price = t.price; row.mult = t.machineMult; }
   } else if (field === 'area') {
     row.area = parseFloat(value) || 0;
   }
@@ -1610,6 +1650,10 @@ function clearForm() {
   state.areaRows = [];
   addAreaRow('平地', 0);
   calc();
+  // ★ 編集モードを解除
+  state.editingEstimateId = null;
+  hideEditingBanner();
+  updateSaveButtonLabel();
 }
 
 // ============================================================
@@ -1782,6 +1826,11 @@ function loadEstimateToForm(id) {
   document.querySelector('.tab-btn[data-tab="estimate"]').classList.add('active');
   document.getElementById('tab-estimate').classList.add('active');
   window.scrollTo(0, 0);
+
+  // ★ 編集モードを開始（上書き保存用）
+  state.editingEstimateId = id;
+  showEditingBanner(e.site);
+  updateSaveButtonLabel();
 }
 
 // ============================================================
@@ -2457,9 +2506,17 @@ window.saveEstimate = function() {
     const areaEl = document.querySelector('.marea[data-m=' + def.key + ']');
     machineAreas[def.key] = parseFloat(areaEl?.value) || 0;
   });
+
+  // ★ 編集中の案件があれば、その案件を更新（上書き）。なければ新規追加。
+  const arr = getEstimates();
+  const editingId = state.editingEstimateId;
+  const existingIdx = editingId ? arr.findIndex(x => x.id === editingId) : -1;
+  const existing = existingIdx >= 0 ? arr[existingIdx] : null;
+
   const est = {
-    id: 'e' + Date.now() + Math.floor(Math.random()*1000),
-    createdAt: new Date().toISOString(),
+    id: existing ? existing.id : ('e' + Date.now() + Math.floor(Math.random()*1000)),
+    createdAt: existing ? existing.createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     date: document.getElementById('estDate').value || new Date().toISOString().slice(0,10),
     site: name,
     siteAreaText, workDate,
@@ -2478,17 +2535,33 @@ window.saveEstimate = function() {
     outsrcByMachine: r.machines.map(m => ({key:m.key, name:m.name, hours:m.hours, outsrc:m.outsrc})),
     machines: r.machines.map(m => ({key:m.key, name:m.name, hours:m.hours, base:m.base})),
     myProfit: r.myProfit,
-    assignments: [],
-    assignedMembers: [],
-    actual: null
+    // 既存の場合は人員割当と実績データを引き継ぐ
+    assignments: existing ? (existing.assignments || []) : [],
+    assignedMembers: existing ? (existing.assignedMembers || []) : [],
+    actual: existing ? (existing.actual || null) : null,
+    recruitingByMachine: existing ? (existing.recruitingByMachine || null) : null
   };
-  const arr = getEstimates();
-  arr.push(est);
-  putEstimates(arr);
-  renderRecordList();
-  renderData();
-  renderSchedule();
-  alert('見積を保存しました: ' + name + (workDate ? `\n作業予定日: ${workDate}` : ''));
+
+  if (existing) {
+    arr[existingIdx] = est;
+    putEstimates(arr);
+    renderRecordList();
+    renderData();
+    renderSchedule();
+    alert('✅ 上書き保存しました: ' + name + (workDate ? `\n作業予定日: ${workDate}` : '') + '\n\n（人員割当・実績データは引き継がれました）');
+    // 編集モードは継続（さらに修正→再度上書き保存できる）
+  } else {
+    arr.push(est);
+    putEstimates(arr);
+    renderRecordList();
+    renderData();
+    renderSchedule();
+    alert('✅ 新規保存しました: ' + name + (workDate ? `\n作業予定日: ${workDate}` : ''));
+    // 新規保存直後は、続けて上書き保存できるよう編集モードに切り替え
+    state.editingEstimateId = est.id;
+    showEditingBanner(name);
+    updateSaveButtonLabel();
+  }
 };
 
 // タブ切替時のレンダリング追加
