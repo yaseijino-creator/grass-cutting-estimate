@@ -340,6 +340,17 @@
   .quote-customer .sama {
     font-size: 16px; margin-left: 14px; color: #555; font-weight: 500;
   }
+  .quote-customer .case-name {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    margin-left: 20px;
+    padding-left: 16px;
+    border-left: 1px solid #aaa;
+    vertical-align: middle;
+  }
+  .quote-customer .case-name::before { content: '案件: '; color: #888; font-size: 11px; }
   .quote-greeting {
     font-size: 13px;
     line-height: 1.9;
@@ -569,6 +580,15 @@
       border-bottom: 1.2px solid #000 !important;
     }
     .quote-customer .sama { font-size: 13px !important; }
+    .quote-customer .case-name {
+      font-size: 11px !important;
+      margin-left: 14px !important;
+      padding-left: 10px !important;
+      border-left: 1px solid #888 !important;
+      border-top: none !important;
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+    }
     .quote-greeting { font-size: 11px !important; margin-bottom: 8px !important; line-height: 1.6 !important; }
     .quote-amount-box {
       background: #fff !important;
@@ -1835,6 +1855,7 @@ function openCustomerView() {
 
       <div class="quote-customer">
         ${customerDisplay}
+        <span class="case-name">${escapeHtml(siteName)}</span>
       </div>
 
       <div class="quote-greeting">
@@ -1848,8 +1869,7 @@ function openCustomerView() {
         <div class="quote-amount-sub">（単価換算 約${(totalWithTax/r.totalArea).toFixed(1)}円/㎡）</div>
       </div>
 
-      <div class="quote-section-title">案件・現場</div>
-      <div class="quote-row"><span>件名（案件名）</span><span>${escapeHtml(siteName)}</span></div>
+      <div class="quote-section-title">作業内容・面積</div>
       <div class="quote-row"><span>作業内容</span><span>草刈り作業 一式</span></div>
       <div class="quote-row"><span>合計面積</span><span><b>${r.totalArea.toLocaleString()} ㎡</b></span></div>
       ${terrainList}
