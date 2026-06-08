@@ -524,11 +524,12 @@
   /* ===== Print: 見積書だけA4一枚に印刷 ===== */
   @media print {
     @page { size: A4; margin: 8mm; }
-    /* 全要素を非表示にして、見積書ツリーだけ表示 */
-    body * { visibility: hidden !important; }
+    html, body { height: auto !important; overflow: hidden !important; }
     body { background: #fff !important; padding: 0 !important; margin: 0 !important; }
-    #customerModal, #customerModal * { visibility: visible !important; }
-    .no-print, .no-print * { visibility: hidden !important; display: none !important; }
+    /* body直下要素を一旦すべて非表示にして空ページ防止 */
+    body > * { display: none !important; }
+    body > #customerModal { display: block !important; }
+    .no-print { display: none !important; }
     #customerModal {
       position: absolute !important;
       left: 0 !important; top: 0 !important; right: 0 !important;
@@ -1775,10 +1776,8 @@ function openCustomerView() {
   expireDate.setDate(expireDate.getDate() + 30);
   const fmtJDate = (d) => `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
 
-  // 金額計算
-  const subtotal = Math.round(r.total);  // 税抜
-  const tax = Math.round(subtotal * 0.10);
-  const totalWithTax = subtotal + tax;
+  // 金額計算（r.total はすでに税込価格として扱う）
+  const totalWithTax = Math.round(r.total);
 
   const fmt = (v) => {
     if (v === 0) return `<span style="color:#888;">±¥0</span>`;
@@ -1846,7 +1845,7 @@ function openCustomerView() {
       <div class="quote-amount-box">
         <div class="quote-amount-label">御 見 積 金 額（税込）</div>
         <div class="quote-amount-main">¥ ${totalWithTax.toLocaleString()} −</div>
-        <div class="quote-amount-sub">（税抜 ¥${subtotal.toLocaleString()} ／ 単価換算 約${(subtotal/r.totalArea).toFixed(1)}円/㎡）</div>
+        <div class="quote-amount-sub">（単価換算 約${(totalWithTax/r.totalArea).toFixed(1)}円/㎡）</div>
       </div>
 
       <div class="quote-section-title">案件・現場</div>
@@ -1858,13 +1857,10 @@ function openCustomerView() {
       <div class="quote-section-title">作業費 内訳</div>
       ${costRows.join('')}
       ${discountBlock}
-      <div class="quote-subtotal"><span>小計（税抜）</span><span>¥${subtotal.toLocaleString()}</span></div>
-      <div class="quote-tax-row"><span>消費税（10%）</span><span>¥${tax.toLocaleString()}</span></div>
       <div class="quote-total"><span class="lbl">合計（税込）</span>¥${totalWithTax.toLocaleString()}</div>
 
       <div class="quote-section-title">備考・お支払いについて</div>
       <div class="quote-notes">
-        ・本見積書は発行日より30日間有効です。<br>
         ・現場の状況により、金額が変動する場合があります。<br>
         ・天候や安全面の都合により、作業日を振り替えさせていただく場合があります。<br>
         ・お支払いは作業完了後、請求書を発行いたします（お振込・現金 どちらも可）。
