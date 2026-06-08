@@ -521,34 +521,94 @@
   }
   .stat-box .lbl { font-size: 11px; color: #666; margin-top: 3px; line-height: 1.3; }
 
-  /* ===== Print ===== */
+  /* ===== Print: 見積書だけA4一枚に印刷 ===== */
   @media print {
-    @page { size: A4; margin: 12mm; }
-    body { background: #fff; padding: 0; margin: 0; }
-    header, nav, .no-print { display: none !important; }
-    .modal-bg { position: static !important; background: none !important; padding: 0 !important; display: block !important; }
-    .modal { max-width: 100% !important; box-shadow: none !important; padding: 0 !important; background: transparent !important; }
+    @page { size: A4; margin: 8mm; }
+    /* 全要素を非表示にして、見積書ツリーだけ表示 */
+    body * { visibility: hidden !important; }
+    body { background: #fff !important; padding: 0 !important; margin: 0 !important; }
+    #customerModal, #customerModal * { visibility: visible !important; }
+    .no-print, .no-print * { visibility: hidden !important; display: none !important; }
+    #customerModal {
+      position: absolute !important;
+      left: 0 !important; top: 0 !important; right: 0 !important;
+      background: none !important;
+      padding: 0 !important;
+      display: block !important;
+    }
+    .modal {
+      max-width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+    }
     .quote-doc {
       border: none !important; box-shadow: none !important;
-      padding: 10px 20px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      max-width: none !important;
+      font-size: 11px !important;
       page-break-inside: avoid;
     }
     .quote-doc::before { display: none !important; }
+    .quote-title {
+      font-size: 22px !important;
+      letter-spacing: 10px !important;
+      padding: 0 0 6px !important;
+      margin-bottom: 8px !important;
+      border-bottom: 1.5px solid #000 !important;
+    }
+    .quote-meta { font-size: 10.5px !important; margin-bottom: 10px !important; }
+    .quote-customer {
+      font-size: 16px !important;
+      margin: 4px 0 8px !important;
+      padding-bottom: 4px !important;
+      border-bottom: 1.2px solid #000 !important;
+    }
+    .quote-customer .sama { font-size: 13px !important; }
+    .quote-greeting { font-size: 11px !important; margin-bottom: 8px !important; line-height: 1.6 !important; }
+    .quote-amount-box {
+      background: #fff !important;
+      border: 1.5px solid #000 !important;
+      padding: 8px 14px !important;
+      margin: 0 0 10px !important;
+    }
+    .quote-amount-label { font-size: 10px !important; letter-spacing: 2px !important; }
+    .quote-amount-main { font-size: 24px !important; margin-top: 2px !important; color: #000 !important; }
+    .quote-amount-sub { font-size: 10px !important; margin-top: 2px !important; }
     .quote-section-title {
       background: #fff !important;
-      color: #1a3520 !important;
-      border-top: 1.5px solid #1a3520;
-      border-bottom: 1.5px solid #1a3520;
-      padding: 4px 0;
+      color: #000 !important;
+      border-top: 1.2px solid #000 !important;
+      border-bottom: 1.2px solid #000 !important;
+      padding: 2px 4px !important;
+      margin: 10px 0 4px !important;
+      font-size: 11.5px !important;
+      letter-spacing: 2px !important;
     }
+    .quote-row { padding: 3px 2px !important; font-size: 11px !important; }
+    .quote-row.sub { background: transparent !important; padding-left: 12px !important; font-size: 10.5px !important; }
+    .quote-subtotal { margin-top: 3px !important; padding: 4px 2px !important; font-size: 11.5px !important; border-top: 1.2px solid #000 !important; }
+    .quote-tax-row { padding: 3px 2px !important; font-size: 11px !important; }
+    .quote-discount { padding: 4px 8px !important; font-size: 11px !important; background: #fff !important; border-left: 2px solid #000 !important; color: #000 !important; }
     .quote-total {
       background: #fff !important;
-      color: #1a3520 !important;
-      border-top: 2.5px solid #1a3520;
-      border-bottom: 2.5px solid #1a3520;
+      color: #000 !important;
+      padding: 6px 10px !important;
+      font-size: 15px !important;
+      letter-spacing: 1px !important;
+      border-top: 2px solid #000 !important;
+      border-bottom: 2px solid #000 !important;
+      margin: 6px 0 4px !important;
     }
-    .quote-total .lbl { color: #1a3520 !important; }
-    .quote-stamp { border-color: #c03050 !important; color: #c03050 !important; }
+    .quote-total .lbl { color: #000 !important; font-size: 11px !important; }
+    .quote-notes { background: #fff !important; border-left: 2px solid #000 !important; font-size: 10.5px !important; line-height: 1.6 !important; padding: 6px 10px !important; margin-top: 6px !important; }
+    .quote-issuer-wrap { margin-top: 10px !important; }
+    .quote-issuer-box { font-size: 10.5px !important; line-height: 1.6 !important; padding: 4px 12px !important; }
+    .quote-issuer-name { font-size: 13px !important; margin-bottom: 2px !important; }
+    .quote-stamp { display: none !important; }
   }
 </style>
 
@@ -1789,9 +1849,9 @@ function openCustomerView() {
         <div class="quote-amount-sub">（税抜 ¥${subtotal.toLocaleString()} ／ 単価換算 約${(subtotal/r.totalArea).toFixed(1)}円/㎡）</div>
       </div>
 
-      <div class="quote-section-title">件名・現場</div>
-      <div class="quote-row"><span>件名</span><span>草刈り作業 一式</span></div>
-      <div class="quote-row"><span>現場</span><span>${escapeHtml(siteName)}</span></div>
+      <div class="quote-section-title">案件・現場</div>
+      <div class="quote-row"><span>件名（案件名）</span><span>${escapeHtml(siteName)}</span></div>
+      <div class="quote-row"><span>作業内容</span><span>草刈り作業 一式</span></div>
       <div class="quote-row"><span>合計面積</span><span><b>${r.totalArea.toLocaleString()} ㎡</b></span></div>
       ${terrainList}
 
@@ -1807,15 +1867,14 @@ function openCustomerView() {
         ・本見積書は発行日より30日間有効です。<br>
         ・現場の状況により、金額が変動する場合があります。<br>
         ・天候や安全面の都合により、作業日を振り替えさせていただく場合があります。<br>
-        ・お支払いは作業完了後、請求書を発行いたします（お振込・現金 どちらも可）。<br>
-        ・ご不明な点はお気軽にお問い合わせください。
+        ・お支払いは作業完了後、請求書を発行いたします（お振込・現金 どちらも可）。
       </div>
 
       <div class="quote-issuer-wrap">
-        <div class="quote-stamp">草刈<br>りたい</div>
         <div class="quote-issuer-box">
           <div class="quote-issuer-name">草刈りたい</div>
-          <div>島根県鹿足郡吉賀町</div>
+          <div>代表 河野 成祥</div>
+          <div>島根県鹿足郡吉賀町木部谷225</div>
           <div>TEL: 090-5678-8294</div>
           <div>Email: yaseijino@gmail.com</div>
         </div>
