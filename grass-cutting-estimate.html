@@ -331,26 +331,28 @@
   .quote-meta .item { display: flex; gap: 6px; }
   .quote-meta .label { color: #777; font-weight: 600; min-width: 70px; }
   .quote-customer {
-    font-size: 22px; font-weight: 700;
-    margin: 8px 0 16px;
-    padding-bottom: 8px;
-    border-bottom: 1.5px solid #1a3520;
+    font-size: 30px; font-weight: 700;
+    margin: 12px 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #1a3520;
     color: #1a3520;
+    letter-spacing: 2px;
   }
   .quote-customer .sama {
-    font-size: 16px; margin-left: 14px; color: #555; font-weight: 500;
+    font-size: 22px; margin-left: 14px; color: #333; font-weight: 600;
   }
   .quote-customer .case-name {
     display: inline-block;
-    font-size: 14px;
-    font-weight: 500;
-    color: #555;
-    margin-left: 20px;
-    padding-left: 16px;
-    border-left: 1px solid #aaa;
+    font-size: 20px;
+    font-weight: 700;
+    color: #2d5a3d;
+    margin-left: 22px;
+    padding-left: 18px;
+    border-left: 2px solid #888;
     vertical-align: middle;
+    letter-spacing: 1px;
   }
-  .quote-customer .case-name::before { content: '案件: '; color: #888; font-size: 11px; }
+  .quote-customer .case-name::before { content: '案件: '; color: #888; font-size: 13px; font-weight: 500; margin-right: 4px; }
   .quote-greeting {
     font-size: 13px;
     line-height: 1.9;
@@ -574,21 +576,24 @@
     }
     .quote-meta { font-size: 10.5px !important; margin-bottom: 10px !important; }
     .quote-customer {
-      font-size: 16px !important;
-      margin: 4px 0 8px !important;
-      padding-bottom: 4px !important;
-      border-bottom: 1.2px solid #000 !important;
+      font-size: 22px !important;
+      margin: 6px 0 10px !important;
+      padding-bottom: 6px !important;
+      border-bottom: 1.5px solid #000 !important;
+      letter-spacing: 1.5px !important;
     }
-    .quote-customer .sama { font-size: 13px !important; }
+    .quote-customer .sama { font-size: 16px !important; color: #000 !important; }
     .quote-customer .case-name {
-      font-size: 11px !important;
-      margin-left: 14px !important;
-      padding-left: 10px !important;
-      border-left: 1px solid #888 !important;
+      font-size: 15px !important;
+      color: #000 !important;
+      margin-left: 16px !important;
+      padding-left: 12px !important;
+      border-left: 1.5px solid #555 !important;
       border-top: none !important;
       margin-top: 0 !important;
       padding-top: 0 !important;
     }
+    .quote-customer .case-name::before { font-size: 10px !important; }
     .quote-greeting { font-size: 11px !important; margin-bottom: 8px !important; line-height: 1.6 !important; }
     .quote-amount-box {
       background: #fff !important;
